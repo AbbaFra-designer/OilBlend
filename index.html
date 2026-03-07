@@ -47,7 +47,7 @@ const{useState,useEffect}=React;
 
 /* ══════ SUPABASE CONFIG ══════ */
 var SUPABASE_URL="https://efceyhegzedzwytkmlyv.supabase.co";
-var SUPABASE_KEY="sb_publishable_fTQL3Qd8j37mduNVnnJstw_iynAbl-F";
+var SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmY2V5aGVnemVkend5dGttbHl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4Njk3MzIsImV4cCI6MjA4ODQ0NTczMn0.8XjeFDhklrrhyBwcUeuL2cR0RH0GJClIFpVC_37kor4";
 
 async function supabaseInsert(table,data){
   var res=await fetch(SUPABASE_URL+"/rest/v1/"+table,{
@@ -55,6 +55,7 @@ async function supabaseInsert(table,data){
     headers:{
       "Content-Type":"application/json",
       "apikey":SUPABASE_KEY,
+      "Authorization":"Bearer "+SUPABASE_KEY,
       "Prefer":"return=minimal"
     },
     body:JSON.stringify(data)
@@ -65,6 +66,25 @@ async function supabaseInsert(table,data){
     throw new Error("DB error "+res.status+": "+err);
   }
   return true;
+}
+
+/* ══════ VISIT LOGGER ══════ */
+function logVisit(user){
+  var ua=navigator.userAgent||"unknown";
+  var device="Desktop";
+  if(/iPhone/i.test(ua))device="iPhone";
+  else if(/iPad/i.test(ua))device="iPad";
+  else if(/Android/i.test(ua))device="Android";
+  else if(/Mobile/i.test(ua))device="Mobile";
+  var screenSize=window.innerWidth+"x"+window.innerHeight;
+  var data={
+    user_name:user?user.name:"Anonimo",
+    user_email:user?user.email:"—",
+    user_company:user?user.company:"—",
+    device:device,
+    screen_size:screenSize
+  };
+  supabaseInsert("oilblend_visits",data).catch(function(e){console.error("Visit log failed:",e);});
 }
 
 /* ══════ LOGO ══════ */
@@ -265,7 +285,9 @@ function ISOTableScreen(p){
   return(
     <div style={{padding:"16px 14px 24px"}}>
       <h2 style={{fontSize:18,fontWeight:800,color:T.text,margin:"0 0 2px 4px"}}>Tabella ISO VG</h2>
-      <p style={{fontSize:12,color:T.textDim,margin:"0 0 14px 4px"}}>Viscosità a 40°C — tocca una riga per usarla</p>
+      <p style={{fontSize:12,color:T.textDim,margin:"0 0 8px 4px"}}>Viscosità a 40°C — tocca una riga per usarla</p>
+      <Notice type="blue">Tocca un grado per inserirne il valore mediano nell'ultimo campo selezionato.{mg&&<span><br/><strong style={{color:T.green}}>Verde</strong> = risultato attuale.</span>}</Notice>
+      <div style={{height:14}}></div>
       <div style={{borderRadius:14,overflow:"hidden",border:"1px solid "+T.border}}>
         <div style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"10px 12px",background:T.accentDim,borderBottom:"1px solid "+T.border,fontSize:10,fontWeight:700,color:T.accent,textTransform:"uppercase",letterSpacing:1}}>
           <div>Grado</div><div style={{textAlign:"right"}}>Media</div><div style={{textAlign:"right"}}>Min</div><div style={{textAlign:"right"}}>Max</div>
@@ -279,7 +301,6 @@ function ISOTableScreen(p){
           </div>
         );})}
       </div>
-      <Notice type="blue">Tocca un grado per inserirne il valore mediano nell'ultimo campo selezionato.{mg&&<span><br/><strong style={{color:T.green}}>Verde</strong> = risultato attuale.</span>}</Notice>
     </div>
   );
 }
@@ -303,21 +324,234 @@ function InfoScreen(){
       <h3 style={h3s}>Limiti</h3>
       <p style={ps}>Funziona per oli minerali e sintetici con ν &gt; 2 mm²/s. Non applicabile a emulsioni o oli con additivi polimerici. Evitare differenze eccessive.</p>
       <div style={{marginTop:28,padding:"14px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,textAlign:"center"}}>
-        <OilBlendLogo size={28} style={{margin:"0 auto 8px",display:"block"}}/><div style={{fontSize:16,fontWeight:800,color:T.text}}>OilBlend</div><div style={{fontSize:11,color:T.textDim,marginTop:4}}>Versione 1.0.0</div><div style={{fontSize:10,color:T.textMuted,marginTop:2}}>ASTM D341 · Walther</div>
+        <OilBlendLogo size={28} style={{margin:"0 auto 8px",display:"block"}}/><div style={{fontSize:16,fontWeight:800,color:T.text}}>OilBlend</div><div style={{fontSize:11,color:T.textDim,marginTop:4}}>Versione 1.0.0</div><div style={{fontSize:10,color:T.textMuted,marginTop:2}}>ASTM D341 · Walther</div><div style={{marginTop:12,paddingTop:10,borderTop:"1px solid "+T.border,fontSize:11,color:T.textDim,lineHeight:1.5}}>Designed by <strong style={{color:T.text}}>Digital Reality</strong> & <strong style={{color:T.text}}>Nuova Bravol Srl</strong></div>
       </div>
     </div>
   );
 }
 
-/* ══════ SCREEN 4 — Profile ══════ */
+/* ══════ ADMIN PASSWORD ══════ */
+var ADMIN_PASSWORD="OilBlend2026!";
+
+/* ══════ SUPABASE FETCH / UPDATE / DELETE ══════ */
+async function supabaseFetch(table,order){
+  var url=SUPABASE_URL+"/rest/v1/"+table+"?select=*&order="+(order||"registered_at.desc");
+  var res=await fetch(url,{method:"GET",headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"}});
+  if(!res.ok){var err=await res.text();throw new Error("Errore "+res.status+": "+err);}
+  return await res.json();
+}
+async function supabaseUpdate(table,id,data){
+  var res=await fetch(SUPABASE_URL+"/rest/v1/"+table+"?id=eq."+id,{method:"PATCH",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Prefer":"return=minimal"},body:JSON.stringify(data)});
+  if(!res.ok){var err=await res.text();throw new Error("Errore "+res.status+": "+err);}
+  return true;
+}
+async function supabaseDelete(table,id){
+  var res=await fetch(SUPABASE_URL+"/rest/v1/"+table+"?id=eq."+id,{method:"DELETE",headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY}});
+  if(!res.ok){var err=await res.text();throw new Error("Errore "+res.status+": "+err);}
+  return true;
+}
+
+/* ══════ SCREEN 4 — Profile + Admin ══════ */
 function ProfileScreen(p){
   var u=p.user;
+  const[adminOpen,setAdminOpen]=useState(false);
+  const[pwd,setPwd]=useState("");
+  const[pwdErr,setPwdErr]=useState(false);
+  const[users,setUsers]=useState([]);
+  const[visits,setVisits]=useState([]);
+  const[loading,setLoading]=useState(false);
+  const[fetchErr,setFetchErr]=useState(null);
+  const[search,setSearch]=useState("");
+  const[editUser,setEditUser]=useState(null);
+  const[editName,setEditName]=useState("");
+  const[editCompany,setEditCompany]=useState("");
+  const[editEmail,setEditEmail]=useState("");
+  const[editPhone,setEditPhone]=useState("");
+  const[saving,setSaving]=useState(false);
+  const[saveMsg,setSaveMsg]=useState(null);
+  const[profileEdit,setProfileEdit]=useState(false);
+  const[profName,setProfName]=useState(u.name||"");
+  const[profCompany,setProfCompany]=useState(u.company||"");
+  const[profEmail,setProfEmail]=useState(u.email||"");
+  const[profPhone,setProfPhone]=useState(u.phone||"");
+  const[profSaving,setProfSaving]=useState(false);
+  const[profMsg,setProfMsg]=useState(null);
+
+  function openProfileEdit(){setProfileEdit(true);setProfName(u.name||"");setProfCompany(u.company||"");setProfEmail(u.email||"");setProfPhone(u.phone||"");setProfMsg(null);}
+  async function saveProfile(){
+    if(!profName.trim()||!profEmail.trim()){setProfMsg({type:"err",text:"Nome e email obbligatori"});return;}
+    setProfSaving(true);setProfMsg(null);
+    var updated={name:profName.trim(),company:profCompany.trim(),email:profEmail.trim(),phone:profPhone.trim()};
+    // Update local storage
+    var stored=sGet("oilblend_user")||{};
+    Object.assign(stored,updated);
+    sSet("oilblend_user",stored);
+    // Try update on Supabase (by email match)
+    try{
+      var res=await fetch(SUPABASE_URL+"/rest/v1/oilblend_users?email=eq."+encodeURIComponent(u.email),{method:"PATCH",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Prefer":"return=minimal"},body:JSON.stringify(updated)});
+      if(!res.ok)throw new Error(res.status);
+    }catch(e){console.error("Profile update on DB failed:",e);}
+    // Update parent
+    Object.assign(u,updated);
+    setProfMsg({type:"ok",text:"Profilo aggiornato!"});
+    setProfSaving(false);
+    setTimeout(function(){setProfileEdit(false);setProfMsg(null);},1200);
+  }
+
+  function handleAdminLogin(){
+    if(pwd===ADMIN_PASSWORD){setAdminOpen(true);setPwdErr(false);loadData();}
+    else{setPwdErr(true);}
+  }
+  async function loadData(){
+    setLoading(true);setFetchErr(null);
+    try{setUsers(await supabaseFetch("oilblend_users","registered_at.desc"));}catch(e){setFetchErr(e.message);}
+    try{setVisits(await supabaseFetch("oilblend_visits","visited_at.desc"));}catch(e){}
+    setLoading(false);
+  }
+  function openEdit(usr){setEditUser(usr);setEditName(usr.name||"");setEditCompany(usr.company||"");setEditEmail(usr.email||"");setEditPhone(usr.phone||"");setSaveMsg(null);}
+  async function handleSave(){
+    if(!editUser)return;setSaving(true);setSaveMsg(null);
+    try{await supabaseUpdate("oilblend_users",editUser.id,{name:editName.trim(),company:editCompany.trim(),email:editEmail.trim(),phone:editPhone.trim()});
+      setSaveMsg({type:"ok",text:"Salvato!"});
+      setUsers(function(prev){return prev.map(function(x){return x.id===editUser.id?Object.assign({},x,{name:editName.trim(),company:editCompany.trim(),email:editEmail.trim(),phone:editPhone.trim()}):x;});});
+      setTimeout(function(){setEditUser(null);setSaveMsg(null);},1000);
+    }catch(e){setSaveMsg({type:"err",text:e.message});}
+    setSaving(false);
+  }
+  async function handleDelete(){
+    if(!editUser||!confirm("Eliminare "+editUser.name+"? Azione irreversibile."))return;
+    setSaving(true);
+    try{await supabaseDelete("oilblend_users",editUser.id);setUsers(function(prev){return prev.filter(function(x){return x.id!==editUser.id;});});setEditUser(null);}
+    catch(e){setSaveMsg({type:"err",text:e.message});}
+    setSaving(false);
+  }
+
+  var filtered=users;
+  if(search.trim()){var q=search.toLowerCase();filtered=users.filter(function(x){return(x.name||"").toLowerCase().indexOf(q)>=0||(x.company||"").toLowerCase().indexOf(q)>=0||(x.email||"").toLowerCase().indexOf(q)>=0||(x.phone||"").indexOf(q)>=0;});}
+
   function F(label,val){return(<div style={{padding:"14px 16px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,marginBottom:10}}><div style={{fontSize:10,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{label}</div><div style={{fontSize:15,fontWeight:600,color:T.text}}>{val}</div></div>);}
+  var loginInput={width:"100%",boxSizing:"border-box",padding:"14px 16px",fontSize:16,fontWeight:500,fontFamily:T.font,background:"rgba(255,255,255,0.05)",border:"1.5px solid "+(pwdErr?T.red+"60":T.border),borderRadius:12,color:T.text,outline:"none"};
+  var editInput={width:"100%",boxSizing:"border-box",padding:"12px 14px",fontSize:15,fontWeight:500,fontFamily:T.font,background:"rgba(255,255,255,0.05)",border:"1.5px solid "+T.accentBorder,borderRadius:10,color:T.text,outline:"none",marginTop:6};
+  var today=new Date().toDateString();
+  var visitsToday=visits.filter(function(v){return v.visited_at&&new Date(v.visited_at).toDateString()===today;}).length;
+
   return(
     <div style={{padding:"20px 18px 40px"}}>
-      <h2 style={{fontSize:20,fontWeight:800,color:T.text,margin:"0 0 20px"}}>Profilo</h2>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <h2 style={{fontSize:20,fontWeight:800,color:T.text,margin:0}}>Profilo</h2>
+        <button onClick={openProfileEdit} style={{padding:"7px 14px",borderRadius:10,border:"1px solid "+T.accentBorder,background:T.accentDim,color:T.accent,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>✏️ Modifica</button>
+      </div>
       {F("Nome",u.name)}{F("Azienda",u.company)}{F("Email",u.email)}{F("Telefono",u.phone)}
-      <button onClick={p.onLogout} style={{marginTop:24,width:"100%",padding:"14px",borderRadius:12,border:"1.5px solid "+T.redBorder,background:T.redDim,color:T.red,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>Esci e Cancella Dati</button>
+
+      {/* ── Profile Edit Modal ── */}
+      {profileEdit&&(
+        <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={function(){setProfileEdit(false);}}>
+          <div style={{width:"100%",maxWidth:380,background:"#1a1e36",borderRadius:20,border:"1px solid "+T.accentBorder,padding:"24px 20px",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}} onClick={function(e){e.stopPropagation();}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <h3 style={{fontSize:18,fontWeight:800,color:T.text,margin:0}}>Modifica Profilo</h3>
+              <button onClick={function(){setProfileEdit(false);}} style={{background:"none",border:"none",color:T.textDim,fontSize:22,cursor:"pointer",padding:4}}>✕</button>
+            </div>
+            {[{l:"Nome",v:profName,s:setProfName},{l:"Azienda",v:profCompany,s:setProfCompany},{l:"Email",v:profEmail,s:setProfEmail},{l:"Telefono",v:profPhone,s:setProfPhone}].map(function(f){return(
+              <div key={f.l} style={{marginBottom:12}}>
+                <label style={{fontSize:11,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1}}>{f.l}</label>
+                <input value={f.v} onChange={function(e){f.s(e.target.value);}} style={editInput}/>
+              </div>
+            );})}
+            {profMsg&&<div style={{padding:"10px 12px",borderRadius:8,background:profMsg.type==="ok"?T.greenDim:T.redDim,border:"1px solid "+(profMsg.type==="ok"?T.greenBorder:T.redBorder),fontSize:12,color:profMsg.type==="ok"?T.green:T.red,marginBottom:12}}>{profMsg.text}</div>}
+            <button onClick={saveProfile} disabled={profSaving} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+T.blue+","+T.cyan+")",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer",fontFamily:T.font,letterSpacing:.5,textTransform:"uppercase",opacity:profSaving?.6:1}}>{profSaving?"Salvataggio...":"SALVA PROFILO"}</button>
+          </div>
+        </div>
+      )}
+
+      <button onClick={p.onLogout} style={{marginTop:8,width:"100%",padding:"14px",borderRadius:12,border:"1.5px solid "+T.redBorder,background:T.redDim,color:T.red,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>Esci e Cancella Dati</button>
+
+      {/* ── Admin ── */}
+      <div style={{marginTop:32,paddingTop:24,borderTop:"1px solid "+T.border}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={adminOpen?T.accent:T.textDim} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span style={{fontSize:16,fontWeight:800,color:T.text}}>Area Admin</span>
+        </div>
+
+        {!adminOpen?(
+          <div>
+            <input type="password" value={pwd} placeholder="Password admin" onChange={function(e){setPwd(e.target.value);setPwdErr(false);}} onKeyDown={function(e){if(e.key==="Enter")handleAdminLogin();}} style={loginInput}/>
+            {pwdErr&&<div style={{fontSize:12,color:T.red,marginTop:6,paddingLeft:4}}>Password errata</div>}
+            <button onClick={handleAdminLogin} style={{marginTop:12,width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#EF5350,#FF8A65)",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer",fontFamily:T.font,letterSpacing:.5,textTransform:"uppercase"}}>ACCEDI ADMIN</button>
+          </div>
+        ):(
+          <div>
+            {/* ── EDIT MODAL ── */}
+            {editUser&&(
+              <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={function(){setEditUser(null);}}>
+                <div style={{width:"100%",maxWidth:380,background:"#1a1e36",borderRadius:20,border:"1px solid "+T.accentBorder,padding:"24px 20px",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}} onClick={function(e){e.stopPropagation();}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+                    <h3 style={{fontSize:18,fontWeight:800,color:T.text,margin:0}}>Modifica Utente</h3>
+                    <button onClick={function(){setEditUser(null);}} style={{background:"none",border:"none",color:T.textDim,fontSize:22,cursor:"pointer",padding:4}}>✕</button>
+                  </div>
+                  {[{l:"Nome",v:editName,s:setEditName},{l:"Azienda",v:editCompany,s:setEditCompany},{l:"Email",v:editEmail,s:setEditEmail},{l:"Telefono",v:editPhone,s:setEditPhone}].map(function(f){return(
+                    <div key={f.l} style={{marginBottom:12}}>
+                      <label style={{fontSize:11,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1}}>{f.l}</label>
+                      <input value={f.v} onChange={function(e){f.s(e.target.value);}} style={editInput}/>
+                    </div>
+                  );})}
+                  {saveMsg&&<div style={{padding:"10px 12px",borderRadius:8,background:saveMsg.type==="ok"?T.greenDim:T.redDim,border:"1px solid "+(saveMsg.type==="ok"?T.greenBorder:T.redBorder),fontSize:12,color:saveMsg.type==="ok"?T.green:T.red,marginBottom:12}}>{saveMsg.text}</div>}
+                  <button onClick={handleSave} disabled={saving} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+T.blue+","+T.cyan+")",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer",fontFamily:T.font,letterSpacing:.5,textTransform:"uppercase",opacity:saving?.6:1}}>{saving?"Salvataggio...":"SALVA MODIFICHE"}</button>
+                  <button onClick={handleDelete} disabled={saving} style={{marginTop:10,width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid "+T.redBorder,background:T.redDim,color:T.red,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>Elimina Utente</button>
+                  <div style={{marginTop:10,fontFamily:T.mono,fontSize:9,color:T.textMuted,textAlign:"center"}}>ID: {editUser.id}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Stats */}
+            <div style={{display:"flex",gap:8,marginBottom:14}}>
+              <div style={{flex:1,padding:"10px",borderRadius:12,background:T.accentDim,border:"1px solid "+T.accentBorder,textAlign:"center"}}>
+                <div style={{fontFamily:T.mono,fontSize:22,fontWeight:700,color:T.accent}}>{visits.length}</div>
+                <div style={{fontSize:9,color:T.textDim,fontWeight:700,textTransform:"uppercase",letterSpacing:.5}}>Visite totali</div>
+              </div>
+              <div style={{flex:1,padding:"10px",borderRadius:12,background:T.greenDim,border:"1px solid "+T.greenBorder,textAlign:"center"}}>
+                <div style={{fontFamily:T.mono,fontSize:22,fontWeight:700,color:T.green}}>{visitsToday}</div>
+                <div style={{fontSize:9,color:T.textDim,fontWeight:700,textTransform:"uppercase",letterSpacing:.5}}>Oggi</div>
+              </div>
+              <div style={{flex:"0 0 auto"}}><button onClick={loadData} style={{height:"100%",padding:"10px 14px",borderRadius:12,border:"1px solid "+T.accentBorder,background:T.accentDim,color:T.accent,fontSize:18,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>{loading?"...":"↻"}</button></div>
+            </div>
+
+            {/* Search */}
+            <div style={{position:"relative",marginBottom:14}}>
+              <input type="text" value={search} placeholder="Cerca nome, azienda, email..." onChange={function(e){setSearch(e.target.value);}} style={{width:"100%",boxSizing:"border-box",padding:"12px 16px 12px 40px",fontSize:14,fontWeight:500,fontFamily:T.font,background:T.bgInput,border:"1.5px solid "+T.border,borderRadius:12,color:T.text,outline:"none"}}/>
+              <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16,pointerEvents:"none"}}>🔍</span>
+            </div>
+
+            {fetchErr&&<div style={{padding:"12px 14px",borderRadius:10,background:T.redDim,border:"1px solid "+T.redBorder,fontSize:12,color:T.red,marginBottom:12}}>{fetchErr}</div>}
+            {loading&&<div style={{textAlign:"center",padding:30,color:T.textDim,fontSize:14}}>Caricamento...</div>}
+            {!loading&&filtered.length===0&&<div style={{textAlign:"center",padding:30,color:T.textDim,fontSize:14}}>{search?"Nessun risultato":"Nessun utente"}</div>}
+
+            {/* User cards */}
+            {!loading&&filtered.map(function(usr,i){
+              var date=usr.registered_at?new Date(usr.registered_at):null;
+              var dateStr=date?date.toLocaleDateString("it-IT",{day:"2-digit",month:"short",year:"numeric"})+" "+date.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}):"—";
+              var isToday2=date&&date.toDateString()===today;
+              var shortId=usr.id?usr.id.substring(0,8)+"...":"—";
+              return(
+                <div key={usr.id||i} style={{padding:"14px 16px",borderRadius:14,background:isToday2?"rgba(102,187,106,0.04)":"rgba(255,255,255,0.02)",border:"1px solid "+(isToday2?T.greenBorder:T.border),marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                    <div style={{fontSize:15,fontWeight:700,color:T.text}}>{usr.name}</div>
+                    <button onClick={function(){openEdit(usr);}} style={{padding:"5px 12px",borderRadius:8,border:"1px solid "+T.accentBorder,background:T.accentDim,color:T.accent,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>✏️ Edit</button>
+                  </div>
+                  <div style={{fontSize:13,color:T.accent,fontWeight:600,marginBottom:6}}>🏭 {usr.company}</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:4,fontSize:12,color:T.textDim}}>
+                    <span>✉️ {usr.email}</span>
+                    <span>📱 {usr.phone}</span>
+                    <div style={{display:"flex",justifyContent:"space-between",marginTop:4,paddingTop:6,borderTop:"1px solid "+T.border}}>
+                      <span style={{fontFamily:T.mono,fontSize:10,color:T.textMuted}}>ID: {shortId}</span>
+                      <span style={{fontFamily:T.mono,fontSize:10,color:T.textMuted}}>{dateStr}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -330,8 +564,8 @@ function App(){
 
   useEffect(function(){var stored=sGet("oilblend_user");if(stored&&stored.name){setUser(stored);setPhase("splash");}else{setPhase("onboarding");}},[]);
 
-  function handleOnboardComplete(ud){setUser(ud);setPhase("app");}
-  function handleSplashDone(){setPhase("app");}
+  function handleOnboardComplete(ud){setUser(ud);setPhase("app");logVisit(ud);}
+  function handleSplashDone(){setPhase("app");logVisit(user);}
   function handleLogout(){sSet("oilblend_user",null);try{localStorage.removeItem("oilblend_user");}catch(e){}setUser(null);setResult(null);setPhase("onboarding");}
   function handleISOTap(med){setFillValue(med);setFillCounter(function(c){return c+1;});setTab("calc");}
 
