@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>OilBlend — Viscosity Blending Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; overflow: hidden; }
+  body { font-family: 'Outfit', sans-serif; background: #1A1A2E; color: #E8EAF0; -webkit-font-smoothing: antialiased; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; }
+  input::placeholder { color: #4A5068; }
+  button { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ═══ ASTM D341 Walther Method ═══ */
+function calculateBlend(v1, v2, vTarget) {
+  let swapped = false;
+  if (v1 < v2) { [v1, v2] = [v2, v1]; swapped = true; }
+  if (v1 <= 2 || v2 <= 2 || vTarget <= 2) throw new Error("Viscosità deve essere > 2 mm²/s");
+  if (vTarget >= v1 || vTarget <= v2) throw new Error("Target fuori range: deve essere tra i due oli");
+  const W = (v) => Math.log10(Math.log10(v + 0.8));
+  const x = (W(vTarget) - W(v2)) / (W(v1) - W(v2));
+  return { oil1Pct: x * 100, oil2Pct: (1 - x) * 100, swapped };
+}
+
+/* ═══ ISO VG Data ═══ */
+const ISO_VG = [
+  { grade: "VG 2", med: 2.2, min: 1.98, max: 2.42 },
+  { grade: "VG 3", med: 3.2, min: 2.88, max: 3.52 },
+  { grade: "VG 5", med: 4.6, min: 4.14, max: 5.06 },
+  { grade: "VG 7", med: 6.8, min: 6.12, max: 7.48 },
+  { grade: "VG 10", med: 10, min: 9.0, max: 11.0 },
+  { grade: "VG 15", med: 15, min: 13.5, max: 16.5 },
+  { grade: "VG 22", med: 22, min: 19.8, max: 24.2 },
+  { grade: "VG 32", med: 32, min: 28.8, max: 35.2 },
+  { grade: "VG 46", med: 46, min: 41.4, max: 50.6 },
+  { grade: "VG 68", med: 68, min: 61.2, max: 74.8 },
+  { grade: "VG 100", med: 100, min: 90, max: 110 },
+  { grade: "VG 150", med: 150, min: 135, max: 165 },
+  { grade: "VG 220", med: 220, min: 198, max: 242 },
+  { grade: "VG 320", med: 320, min: 288, max: 352 },
+  { grade: "VG 460", med: 460, min: 414, max: 506 },
+  { grade: "VG 680", med: 680, min: 612, max: 748 },
+  { grade: "VG 1000", med: 1000, min: 900, max: 1100 },
+  { grade: "VG 1500", med: 1500, min: 1350, max: 1650 },
+  { grade: "VG 2200", med: 2200, min: 1980, max: 2420 },
+  { grade: "VG 3200", med: 3200, min: 2880, max: 3520 },
+];
+
+function findISOGrade(v) {
+  if (v == null || isNaN(v)) return null;
+  return ISO_VG.find(g => v >= g.min && v <= g.max) || null;
+}
+
+/* ═══ Design Tokens ═══ */
+const T = {
+  bg: "#1A1A2E", bgCard: "rgba(30,30,55,0.85)", bgInput: "rgba(255,255,255,0.04)",
+  accent: "#4FC3F7", accentDim: "rgba(79,195,247,0.12)", accentBorder: "rgba(79,195,247,0.25)",
+  green: "#66BB6A", greenDim: "rgba(102,187,106,0.1)", greenBorder: "rgba(102,187,106,0.25)",
+  yellow: "#FFD54F", yellowDim: "rgba(255,213,79,0.08)", yellowBorder: "rgba(255,213,79,0.2)",
+  red: "#EF5350", redDim: "rgba(239,83,80,0.08)", redBorder: "rgba(239,83,80,0.2)",
+  orange: "#FF8A65", orangeDim: "rgba(255,138,101,0.06)", orangeBorder: "rgba(255,138,101,0.2)",
+  purple: "#AB47BC",
+  text: "#E8EAF0", textDim: "#7B8294", textMuted: "#4A5068",
+  border: "rgba(255,255,255,0.06)",
+  font: "'Outfit', sans-serif", mono: "'JetBrains Mono', monospace",
+};
+
+/* ═══ Icons ═══ */
+const CalcIcon = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? T.accent : T.textMuted} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/>
+  </svg>
+);
+const TableIconSvg = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? T.accent : T.textMuted} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>
+  </svg>
+);
+const InfoIconSvg = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? T.accent : T.textMuted} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+  </svg>
+);
+
+/* ═══ Shared Components ═══ */
+const inputBase = {
+  width: "100%", boxSizing: "border-box", padding: "14px 60px 14px 16px",
+  fontSize: 16, fontWeight: 600, fontFamily: T.font,
+  background: T.bgInput, border: "1.5px solid " + T.border,
+  borderRadius: 12, color: T.text, outline: "none",
+  transition: "border-color 0.2s",
+};
+
+function InputField({ label, value, onChange, placeholder, unit, color, onFocusCb, type }) {
+  const tp = type || "number";
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: color || T.textDim, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 }}>
+        {label}
+      </label>
+      <div style={{ position: "relative" }}>
+        <input
+          type={tp} inputMode={tp === "number" ? "decimal" : "text"} placeholder={placeholder} value={value}
+          onChange={function(e) { onChange(e.target.value); }}
+          onFocus={onFocusCb}
+          style={Object.assign({}, inputBase, {
+            borderColor: value ? (color ? color + "40" : T.accentBorder) : T.border,
+            paddingRight: unit ? 60 : 16
+          })}
+        />
+        {unit && (
+          <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: T.textDim, fontWeight: 500, pointerEvents: "none" }}>
+            {unit}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Notice({ type, children }) {
+  var styles = {
+    yellow: { bg: T.yellowDim, border: T.yellowBorder, color: T.yellow, icon: "⚠️" },
+    red: { bg: T.redDim, border: T.redBorder, color: T.red, icon: "✕" },
+    green: { bg: T.greenDim, border: T.greenBorder, color: T.green, icon: "✓" },
+    blue: { bg: T.accentDim, border: T.accentBorder, color: T.accent, icon: "ℹ" },
+  }[type];
+  return (
+    <div style={{
+      padding: "12px 14px", borderRadius: 10, background: styles.bg,
+      border: "1px solid " + styles.border, fontSize: 13, color: styles.color,
+      lineHeight: 1.6, marginTop: 12, display: "flex", gap: 8, alignItems: "flex-start"
+    }}>
+      <span style={{ flexShrink: 0 }}>{styles.icon}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function ResultBar({ pct1, pct2 }) {
+  const [w, setW] = useState(0);
+  useEffect(function() { setW(0); var t = setTimeout(function() { setW(pct1); }, 60); return function() { clearTimeout(t); }; }, [pct1]);
+  return (
+    <div style={{ display: "flex", borderRadius: 10, overflow: "hidden", height: 36, background: "rgba(0,0,0,0.3)", border: "1px solid " + T.border, marginTop: 14 }}>
+      <div style={{
+        width: w + "%", transition: "width 0.8s cubic-bezier(.4,0,.2,1)",
+        background: "linear-gradient(90deg, " + T.accent + ", #29B6F6)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 12, fontWeight: 700, color: T.bg, minWidth: w > 10 ? 52 : 0, overflow: "hidden"
+      }}>
+        {w > 10 && pct1.toFixed(1) + "%"}
+      </div>
+      <div style={{
+        flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 12, fontWeight: 700, color: T.orange, background: T.orangeDim
+      }}>
+        {pct2.toFixed(1) + "%"}
+      </div>
+    </div>
+  );
+}
+
+/* ═══ SCREEN 1 — Calculator ═══ */
+function CalculatorScreen({ lastFocused, setLastFocused, result, setResult, fillValue }) {
+  const [v1, setV1] = useState("");
+  const [v2, setV2] = useState("");
+  const [vT, setVT] = useState("");
+  const [liters, setLiters] = useState("");
+  const [temp, setTemp] = useState("");
+  const [error, setError] = useState(null);
+
+  useEffect(function() {
+    if (fillValue === null) return;
+    var val = fillValue.toString();
+    if (lastFocused === "v1") setV1(val);
+    else if (lastFocused === "v2") setV2(val);
+    else setVT(val);
+  }, [fillValue]);
+
+  function calc() {
+    var a = parseFloat(v1), b = parseFloat(v2), t = parseFloat(vT);
+    if (isNaN(a) || isNaN(b) || isNaN(t)) { setError("Inserisci tutti e tre i valori di viscosità."); setResult(null); return; }
+    try {
+      var r = calculateBlend(a, b, t);
+      var totalL = parseFloat(liters);
+      setResult({
+        oil1Pct: r.oil1Pct, oil2Pct: r.oil2Pct, swapped: r.swapped,
+        v1: a, v2: b, vT: t,
+        liters: (!isNaN(totalL) && totalL > 0) ? totalL : null,
+        temp: temp.trim() || null,
+        isoMatch: findISOGrade(t),
+      });
+      setError(null);
+    } catch (e) {
+      setError(e.message);
+      setResult(null);
+    }
+  }
+
+  function reset() { setV1(""); setV2(""); setVT(""); setLiters(""); setTemp(""); setError(null); setResult(null); }
+
+  return (
+    <div style={{ padding: "20px 18px 24px" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 800, color: T.text, margin: "0 0 4px", letterSpacing: -0.5 }}>
+        Viscosity Blending Calculator
+      </h1>
+      <p style={{ fontSize: 13, color: T.textDim, margin: "0 0 20px", lineHeight: 1.4 }}>
+        Inserisci i valori alla stessa temperatura
+      </p>
+
+      <InputField label="Viscosità Olio 1 (mm²/s)" value={v1} onChange={setV1} placeholder="es. 220" unit="mm²/s" color={T.accent} onFocusCb={function() { setLastFocused("v1"); }} />
+      <InputField label="Viscosità Olio 2 (mm²/s)" value={v2} onChange={setV2} placeholder="es. 68" unit="mm²/s" color={T.orange} onFocusCb={function() { setLastFocused("v2"); }} />
+      <InputField label="Viscosità Finale desiderata (mm²/s)" value={vT} onChange={setVT} placeholder="es. 150" unit="mm²/s" color={T.purple} onFocusCb={function() { setLastFocused("vT"); }} />
+
+      <div style={{ display: "flex", gap: 12, marginBottom: 2 }}>
+        <div style={{ flex: 1 }}>
+          <InputField label="Quantità totale (litri)" value={liters} onChange={setLiters} placeholder="opzionale" unit="L" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <InputField label="Temperatura rif." value={temp} onChange={setTemp} placeholder="es. 40°C" type="text" />
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+        <button onClick={calc} style={{
+          flex: 1, padding: "16px", borderRadius: 14, border: "none",
+          background: "linear-gradient(135deg, " + T.accent + ", #29B6F6)",
+          color: T.bg, fontSize: 15, fontWeight: 800, cursor: "pointer",
+          fontFamily: T.font, letterSpacing: 0.8, textTransform: "uppercase",
+          boxShadow: "0 6px 28px rgba(79,195,247,0.25)", transition: "transform 0.12s"
+        }}>CALCOLA</button>
+        {(v1 || v2 || vT) && (
+          <button onClick={reset} style={{
+            padding: "16px 18px", borderRadius: 14, border: "1.5px solid " + T.border,
+            background: "transparent", color: T.textDim, fontSize: 13, fontWeight: 600,
+            cursor: "pointer", fontFamily: T.font
+          }}>Reset</button>
+        )}
+      </div>
+
+      {error && <Notice type="red">{error}</Notice>}
+      {result && result.swapped && <Notice type="yellow">I valori sono stati scambiati: Olio 1 è quello più viscoso.</Notice>}
+
+      {result && !error && (
+        <div style={{
+          marginTop: 20, borderRadius: 18, overflow: "hidden",
+          background: T.bgCard, border: "1px solid " + T.accentBorder,
+          boxShadow: "0 8px 40px rgba(79,195,247,0.08)"
+        }}>
+          <div style={{
+            padding: "16px 18px 14px",
+            background: "linear-gradient(135deg, " + T.accentDim + ", transparent)",
+            borderBottom: "1px solid " + T.border
+          }}>
+            <div style={{ fontSize: 10, color: T.textDim, textTransform: "uppercase", letterSpacing: 1.4, fontWeight: 700, marginBottom: 4 }}>
+              Risultato Miscela
+            </div>
+            {result.temp && (
+              <span style={{ fontSize: 11, color: T.textDim }}>Temperatura: <strong style={{ color: T.text }}>{result.temp}</strong></span>
+            )}
+            <ResultBar pct1={result.oil1Pct} pct2={result.oil2Pct} />
+          </div>
+
+          <div style={{ display: "flex", gap: 12, padding: "14px 18px" }}>
+            <div style={{
+              flex: 1, padding: "14px", borderRadius: 14,
+              background: T.accentDim, border: "1px solid " + T.accentBorder, textAlign: "center"
+            }}>
+              <div style={{ fontSize: 10, color: T.accent, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                Olio 1 {result.swapped ? "(più viscoso)" : ""}
+              </div>
+              <div style={{ fontFamily: T.mono, fontSize: 28, fontWeight: 700, color: T.accent, lineHeight: 1 }}>
+                {result.oil1Pct.toFixed(1)}<span style={{ fontSize: 16 }}>%</span>
+              </div>
+              {result.liters && (
+                <div style={{ fontFamily: T.mono, fontSize: 15, fontWeight: 600, color: T.accent, marginTop: 6, opacity: 0.8 }}>
+                  {(result.liters * result.oil1Pct / 100).toFixed(1)} L
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: T.textDim, marginTop: 6 }}>
+                {result.swapped ? result.v2 : result.v1} mm²/s
+              </div>
+            </div>
+            <div style={{
+              flex: 1, padding: "14px", borderRadius: 14,
+              background: T.orangeDim, border: "1px solid " + T.orangeBorder, textAlign: "center"
+            }}>
+              <div style={{ fontSize: 10, color: T.orange, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                Olio 2
+              </div>
+              <div style={{ fontFamily: T.mono, fontSize: 28, fontWeight: 700, color: T.orange, lineHeight: 1 }}>
+                {result.oil2Pct.toFixed(1)}<span style={{ fontSize: 16 }}>%</span>
+              </div>
+              {result.liters && (
+                <div style={{ fontFamily: T.mono, fontSize: 15, fontWeight: 600, color: T.orange, marginTop: 6, opacity: 0.8 }}>
+                  {(result.liters * result.oil2Pct / 100).toFixed(1)} L
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: T.textDim, marginTop: 6 }}>
+                {result.swapped ? result.v1 : result.v2} mm²/s
+              </div>
+            </div>
+          </div>
+
+          {result.isoMatch && (
+            <div style={{
+              margin: "0 18px 14px", padding: "10px 14px", borderRadius: 10,
+              background: T.greenDim, border: "1px solid " + T.greenBorder,
+              fontSize: 13, color: T.green, fontWeight: 600
+            }}>
+              {"✓ La viscosità target rientra nel grado "}
+              <strong>{"ISO " + result.isoMatch.grade}</strong>
+              {" (" + result.isoMatch.min + "–" + result.isoMatch.max + " mm²/s)"}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══ SCREEN 2 — ISO VG Table ═══ */
+function ISOTableScreen({ result, onTapGrade }) {
+  var matchGrade = (result && result.isoMatch) ? result.isoMatch.grade : null;
+
+  return (
+    <div style={{ padding: "16px 14px 24px" }}>
+      <h2 style={{ fontSize: 18, fontWeight: 800, color: T.text, margin: "0 0 2px 4px" }}>Tabella ISO VG</h2>
+      <p style={{ fontSize: 12, color: T.textDim, margin: "0 0 14px 4px" }}>Viscosità cinematica a 40°C — tocca una riga per usarla</p>
+
+      <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid " + T.border }}>
+        <div style={{
+          display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr 1fr",
+          padding: "10px 14px", background: T.accentDim,
+          borderBottom: "1px solid " + T.border,
+          fontSize: 10, fontWeight: 700, color: T.accent, textTransform: "uppercase", letterSpacing: 1
+        }}>
+          <div>Grado</div>
+          <div style={{ textAlign: "right" }}>Media</div>
+          <div style={{ textAlign: "right" }}>Min</div>
+          <div style={{ textAlign: "right" }}>Max</div>
+        </div>
+
+        {ISO_VG.map(function(g, i) {
+          var isMatch = matchGrade === g.grade;
+          return (
+            <div key={g.grade} onClick={function() { onTapGrade(g.med); }} style={{
+              display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr 1fr",
+              padding: "11px 14px", cursor: "pointer",
+              background: isMatch ? T.greenDim : (i % 2 === 0 ? "rgba(255,255,255,0.01)" : "rgba(255,255,255,0.025)"),
+              borderBottom: "1px solid " + T.border,
+              borderLeft: isMatch ? "3px solid " + T.green : "3px solid transparent",
+              transition: "background 0.15s", alignItems: "center"
+            }}>
+              <div style={{ fontWeight: 700, fontSize: 12, color: isMatch ? T.green : T.text }}>
+                {"ISO " + g.grade}
+              </div>
+              <div style={{ textAlign: "right", fontFamily: T.mono, fontWeight: 700, fontSize: 13, color: isMatch ? T.green : T.accent }}>
+                {g.med}
+              </div>
+              <div style={{ textAlign: "right", fontFamily: T.mono, fontSize: 12, color: T.textDim }}>{g.min}</div>
+              <div style={{ textAlign: "right", fontFamily: T.mono, fontSize: 12, color: T.textDim }}>{g.max}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <Notice type="blue">
+        Tocca un grado per inserirne il valore mediano nell'ultimo campo selezionato nel Calcolatore.
+        {matchGrade && (
+          <span><br/><strong style={{ color: T.green }}>Verde</strong> = grado corrispondente al risultato attuale.</span>
+        )}
+      </Notice>
+    </div>
+  );
+}
+
+/* ═══ SCREEN 3 — Info ═══ */
+function InfoScreen() {
+  var h3s = { fontSize: 15, fontWeight: 700, color: T.text, margin: "24px 0 8px" };
+  var ps = { fontSize: 13, color: T.textDim, lineHeight: 1.7, margin: "0 0 8px" };
+
+  return (
+    <div style={{ padding: "20px 18px 40px" }}>
+      <h2 style={{ fontSize: 20, fontWeight: 800, color: T.text, margin: "0 0 4px" }}>Informazioni</h2>
+      <p style={{ fontSize: 12, color: T.textDim, margin: "0 0 16px" }}>Metodo di calcolo e note d'uso</p>
+
+      <div style={{
+        padding: "14px 16px", borderRadius: 14,
+        background: T.yellowDim, border: "1px solid " + T.yellowBorder,
+        fontSize: 13, color: T.yellow, lineHeight: 1.6
+      }}>
+        <strong>⚠️ Attenzione</strong><br/>
+        Le viscosità dei due oli devono essere misurate alla <strong>stessa temperatura</strong>.
+        Il metodo è valido solo per valori superiori a <strong>2 mm²/s</strong>.
+      </div>
+
+      <h3 style={h3s}>Metodo ASTM D341 (Walther)</h3>
+      <p style={ps}>
+        Questa app utilizza il metodo basato sulla norma ASTM D341, noto come metodo di Walther-ASTM.
+        È lo standard internazionale per stimare la viscosità di miscele di oli lubrificanti.
+      </p>
+      <p style={ps}>
+        Il principio si basa sulla relazione doppio-logaritmica tra viscosità e composizione: la viscosità
+        cinematica di una miscela non segue una media lineare, ma una legge logaritmica.
+      </p>
+
+      <h3 style={h3s}>Formula Utilizzata</h3>
+      <div style={{
+        padding: "16px", borderRadius: 14, background: "rgba(255,255,255,0.03)",
+        border: "1px solid " + T.border, fontFamily: T.mono, fontSize: 13,
+        color: T.accent, lineHeight: 2.2, overflowX: "auto"
+      }}>
+        <div style={{ color: T.textDim, fontSize: 11 }}>{"// Funzione di Walther"}</div>
+        <div>{"W(ν) = log₁₀( log₁₀( ν + 0.8 ) )"}</div>
+        <div style={{ marginTop: 10, color: T.textDim, fontSize: 11 }}>{"// Percentuale Olio 1 (più viscoso)"}</div>
+        <div>{"x = ( W(ν_target) − W(ν₂) ) / ( W(ν₁) − W(ν₂) )"}</div>
+        <div style={{ marginTop: 10, color: T.textDim, fontSize: 11 }}>{"// Risultato"}</div>
+        <div>{"Olio 1 = x × 100 %"}</div>
+        <div>{"Olio 2 = (1 − x) × 100 %"}</div>
+      </div>
+      <p style={Object.assign({}, ps, { marginTop: 10 })}>
+        Dove <strong style={{ color: T.text }}>ν₁</strong> è la viscosità dell'olio più viscoso,{" "}
+        <strong style={{ color: T.text }}>ν₂</strong> quella del più fluido, e{" "}
+        <strong style={{ color: T.text }}>ν_target</strong> è la viscosità desiderata. Tutte in mm²/s alla stessa temperatura.
+      </p>
+
+      <h3 style={h3s}>Gradazioni ISO VG</h3>
+      <p style={ps}>
+        Le gradazioni ISO VG seguono la norma ISO 3448. Ogni grado ha un valore mediano
+        di viscosità a 40°C con tolleranza ±10%. La tabella nell'app riporta tutti i 20 gradi
+        standard da VG 2 a VG 3200.
+      </p>
+
+      <h3 style={h3s}>Limiti del Metodo</h3>
+      <p style={ps}>
+        Funziona bene per oli minerali e molti sintetici con viscosità &gt; 2 mm²/s.
+        Non applicabile a emulsioni, oli con additivi polimerici (VII),
+        o miscele di basi chimiche molto diverse. Evitare differenze eccessive tra le viscosità.
+      </p>
+
+      <div style={{
+        marginTop: 32, padding: "14px", borderRadius: 12,
+        background: "rgba(255,255,255,0.02)", border: "1px solid " + T.border, textAlign: "center"
+      }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>OilBlend</div>
+        <div style={{ fontSize: 11, color: T.textDim, marginTop: 4 }}>Versione 1.0.0</div>
+        <div style={{ fontSize: 10, color: T.textMuted, marginTop: 2 }}>Metodo ASTM D341 · Walther</div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══ MAIN APP ═══ */
+function App() {
+  const [tab, setTab] = useState("calc");
+  const [lastFocused, setLastFocused] = useState("vT");
+  const [result, setResult] = useState(null);
+  const [fillValue, setFillValue] = useState(null);
+  const [fillCounter, setFillCounter] = useState(0);
+
+  function handleISOTap(med) {
+    setFillValue(med);
+    setFillCounter(function(c) { return c + 1; });
+    setTab("calc");
+  }
+
+  var tabs = [
+    { id: "calc", label: "Calcolo", Icon: CalcIcon },
+    { id: "table", label: "ISO VG", Icon: TableIconSvg },
+    { id: "info", label: "Info", Icon: InfoIconSvg },
+  ];
+
+  return (
+    <div style={{
+      maxWidth: 430, margin: "0 auto", height: "100vh",
+      background: "linear-gradient(175deg, " + T.bg + " 0%, #12122a 50%, " + T.bg + " 100%)",
+      fontFamily: T.font, color: T.text,
+      display: "flex", flexDirection: "column", position: "relative", overflow: "hidden"
+    }}>
+      {/* Ambient glow */}
+      <div style={{ position: "absolute", top: -100, right: -60, width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(79,195,247,0.06), transparent 70%)", pointerEvents: "none" }} />
+
+      {/* Status bar */}
+      <div style={{
+        padding: "10px 20px 6px", display: "flex", justifyContent: "space-between", alignItems: "center",
+        fontSize: 13, fontWeight: 700, color: T.text, flexShrink: 0
+      }}>
+        <span>9:41</span>
+        <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill={T.text}><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5" fillOpacity="0.3"/></svg>
+          <svg width="15" height="11" viewBox="0 0 15 11" fill={T.text}><path d="M7.5 3.5C9.2 3.5 10.7 4.2 11.8 5.3L13.2 3.9C11.7 2.4 9.7 1.5 7.5 1.5S3.3 2.4 1.8 3.9L3.2 5.3C4.3 4.2 5.8 3.5 7.5 3.5zM7.5 7C8.3 7 9.1 7.3 9.7 7.9L7.5 10.5L5.3 7.9C5.9 7.3 6.7 7 7.5 7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0" y="1" width="22" height="10" rx="2" stroke={T.text} strokeWidth="1"/><rect x="23" y="4" width="2" height="4" rx="0.5" fill={T.text} fillOpacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill={T.green}/></svg>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+        {tab === "calc" && <CalculatorScreen key={fillCounter} lastFocused={lastFocused} setLastFocused={setLastFocused} result={result} setResult={setResult} fillValue={fillValue} />}
+        {tab === "table" && <ISOTableScreen result={result} onTapGrade={handleISOTap} />}
+        {tab === "info" && <InfoScreen />}
+      </div>
+
+      {/* Bottom Tab Bar */}
+      <div style={{
+        display: "flex", flexShrink: 0,
+        background: "rgba(20,20,40,0.95)", backdropFilter: "blur(20px)",
+        borderTop: "1px solid " + T.border, paddingBottom: 16, paddingTop: 8,
+      }}>
+        {tabs.map(function(t) {
+          var active = tab === t.id;
+          return (
+            <button key={t.id} onClick={function() { setTab(t.id); }} style={{
+              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+              background: "none", border: "none", cursor: "pointer", padding: "6px 0",
+              fontFamily: T.font
+            }}>
+              <div style={{
+                padding: "4px 16px", borderRadius: 16,
+                background: active ? T.accentDim : "transparent",
+                transition: "background 0.25s"
+              }}>
+                <t.Icon active={active} />
+              </div>
+              <span style={{
+                fontSize: 10, fontWeight: active ? 700 : 500,
+                color: active ? T.accent : T.textMuted, letterSpacing: 0.3
+              }}>{t.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Home indicator */}
+      <div style={{ display: "flex", justifyContent: "center", paddingBottom: 8, flexShrink: 0, background: "rgba(20,20,40,0.95)" }}>
+        <div style={{ width: 134, height: 5, borderRadius: 3, background: "rgba(255,255,255,0.15)" }} />
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
