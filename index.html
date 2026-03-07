@@ -10,88 +10,31 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { height: 100%; overflow: hidden; }
-  body {
-    height: 100%; overflow: hidden;
-    font-family: 'Outfit', sans-serif; background: #0F1120; color: #E8EAF0;
-    -webkit-font-smoothing: antialiased;
-    /* Support safe areas on iPhone X+ */
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
-  }
-  #root { height: 100%; overflow: hidden; }
-  input[type=number]::-webkit-inner-spin-button,
-  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-  input[type=number] { -moz-appearance: textfield; }
-  input::placeholder { color: #3A3F5A; }
-  button { -webkit-tap-highlight-color: transparent; }
-  ::-webkit-scrollbar { width: 0; }
-
-  @keyframes dropFall {
-    0% { transform: translateY(-60px) scale(0.7); opacity: 0; }
-    50% { transform: translateY(8px) scale(1.05); opacity: 1; }
-    70% { transform: translateY(-3px) scale(0.98); }
-    100% { transform: translateY(0) scale(1); opacity: 1; }
-  }
-  @keyframes fadeUp {
-    0% { transform: translateY(24px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-  }
-  @keyframes pulseGlow {
-    0%, 100% { filter: drop-shadow(0 0 20px rgba(61,128,234,0.3)); }
-    50% { filter: drop-shadow(0 0 40px rgba(61,128,234,0.6)); }
-  }
-  @keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-  @keyframes slideUp {
-    0% { transform: translateY(40px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-  }
-
-  .splash-logo { animation: dropFall 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-  .splash-logo-glow { animation: pulseGlow 2s ease-in-out infinite; animation-delay: 1s; }
-  .splash-title { animation: fadeUp 0.8s ease-out 0.7s both; }
-  .splash-subtitle { animation: fadeUp 0.8s ease-out 1.0s both; }
-  .splash-tagline { animation: fadeUp 0.8s ease-out 1.3s both; }
-  .onboard-field { animation: slideUp 0.5s ease-out both; }
-
-  .btn-primary {
-    position: relative; overflow: hidden;
-    background: linear-gradient(135deg, #3d80ea, #3dc7ec);
-    border: none; border-radius: 14px; padding: 16px;
-    color: #fff; font-size: 15px; font-weight: 800; cursor: pointer;
-    font-family: 'Outfit', sans-serif; letter-spacing: 0.8px;
-    text-transform: uppercase; width: 100%;
-    box-shadow: 0 6px 28px rgba(61,128,234,0.3);
-    transition: transform 0.12s;
-  }
-  .btn-primary:active { transform: scale(0.97); }
-
-  /* CRITICAL: Fixed bottom nav */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    z-index: 50;
-    background: rgba(15,17,32,0.97);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-bottom: env(safe-area-inset-bottom, 8px);
-    max-width: 430px;
-    margin: 0 auto;
-  }
-
-  /* Make sure content doesn't hide behind the nav */
-  .content-scroll {
-    flex: 1; overflow-y: auto; overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 90px; /* space for the fixed nav */
-  }
-
-  @media (max-height: 700px) {
-    .content-scroll { padding-bottom: 80px; }
-  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%;overflow:hidden}
+  body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background:#0F1120;color:#E8EAF0;-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+  #root{height:100%;overflow:hidden}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+  input[type=number]{-moz-appearance:textfield}
+  input::placeholder{color:#3A3F5A}
+  button{-webkit-tap-highlight-color:transparent}
+  ::-webkit-scrollbar{width:0}
+  @keyframes dropFall{0%{transform:translateY(-60px) scale(.7);opacity:0}50%{transform:translateY(8px) scale(1.05);opacity:1}70%{transform:translateY(-3px) scale(.98)}100%{transform:translateY(0) scale(1);opacity:1}}
+  @keyframes fadeUp{0%{transform:translateY(24px);opacity:0}100%{transform:translateY(0);opacity:1}}
+  @keyframes pulseGlow{0%,100%{filter:drop-shadow(0 0 20px rgba(61,128,234,.3))}50%{filter:drop-shadow(0 0 40px rgba(61,128,234,.6))}}
+  @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+  @keyframes slideUp{0%{transform:translateY(40px);opacity:0}100%{transform:translateY(0);opacity:1}}
+  .splash-logo{animation:dropFall 1.2s cubic-bezier(.34,1.56,.64,1) forwards}
+  .splash-logo-glow{animation:pulseGlow 2s ease-in-out infinite;animation-delay:1s}
+  .splash-title{animation:fadeUp .8s ease-out .7s both}
+  .splash-subtitle{animation:fadeUp .8s ease-out 1s both}
+  .splash-tagline{animation:fadeUp .8s ease-out 1.3s both}
+  .onboard-field{animation:slideUp .5s ease-out both}
+  .btn-primary{position:relative;overflow:hidden;background:linear-gradient(135deg,#3d80ea,#3dc7ec);border:none;border-radius:14px;padding:16px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.8px;text-transform:uppercase;width:100%;box-shadow:0 6px 28px rgba(61,128,234,.3);transition:transform .12s}
+  .btn-primary:active{transform:scale(.97)}
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(15,17,32,.97);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);padding-bottom:env(safe-area-inset-bottom,8px);max-width:430px;margin:0 auto}
+  .content-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:90px}
+  @media(max-height:700px){.content-scroll{padding-bottom:80px}}
 </style>
 </head>
 <body>
@@ -99,30 +42,39 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="text/babel">
-const { useState, useEffect } = React;
+const{useState,useEffect}=React;
+
+/* ══════ SUPABASE CONFIG ══════ */
+var SUPABASE_URL="https://efceyhegzedzwytkmlyv.supabase.co";
+var SUPABASE_KEY="sb_publishable_fTQL3Qd8j37mduNVnnJstw_iynAbl-F";
+
+async function supabaseInsert(table,data){
+  var res=await fetch(SUPABASE_URL+"/rest/v1/"+table,{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "apikey":SUPABASE_KEY,
+      "Authorization":"Bearer "+SUPABASE_KEY,
+      "Prefer":"return=representation"
+    },
+    body:JSON.stringify(data)
+  });
+  if(!res.ok){
+    var err=await res.text();
+    throw new Error("Supabase error: "+res.status+" "+err);
+  }
+  return await res.json();
+}
 
 /* ══════ LOGO ══════ */
-function OilBlendLogo({ size, style }) {
-  return (
-    <svg width={size} height={size * 1.253} viewBox="0 0 503.63 631.19" style={style} xmlns="http://www.w3.org/2000/svg">
+function OilBlendLogo({size,style}){
+  return(
+    <svg width={size} height={size*1.253} viewBox="0 0 503.63 631.19" style={style} xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="g36" x1="86.45" y1="165.36" x2="473.35" y2="552.26" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3d80ea"/><stop offset=".17" stopColor="#4082ea"/><stop offset=".32" stopColor="#4a88eb"/>
-          <stop offset=".45" stopColor="#5c94ed"/><stop offset=".58" stopColor="#74a4f0"/><stop offset=".71" stopColor="#94b9f3"/>
-          <stop offset=".83" stopColor="#bbd2f7"/><stop offset=".95" stopColor="#e8f0fc"/><stop offset="1" stopColor="#fff"/>
-        </linearGradient>
-        <linearGradient id="g20" x1="141.79" y1="0" x2="141.79" y2="631.19" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3dc7ec"/><stop offset=".13" stopColor="#41c8ec"/><stop offset=".27" stopColor="#4fcced"/>
-          <stop offset=".42" stopColor="#66d3f0"/><stop offset=".58" stopColor="#86dcf3"/><stop offset=".75" stopColor="#b0e8f7"/>
-          <stop offset=".91" stopColor="#e1f6fc"/><stop offset="1" stopColor="#fff"/>
-        </linearGradient>
-        <linearGradient id="g50" x1="253.92" y1="618.49" x2="253.92" y2="265.98" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#17192d"/><stop offset=".12" stopColor="#171b31"/><stop offset=".27" stopColor="#1a2340"/>
-          <stop offset=".43" stopColor="#1f3057"/><stop offset=".59" stopColor="#264279"/><stop offset=".77" stopColor="#2e59a3"/>
-          <stop offset=".94" stopColor="#3975d7"/><stop offset="1" stopColor="#3d80ea"/>
-        </linearGradient>
+        <linearGradient id="g36" x1="86.45" y1="165.36" x2="473.35" y2="552.26" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#3d80ea"/><stop offset=".17" stopColor="#4082ea"/><stop offset=".32" stopColor="#4a88eb"/><stop offset=".45" stopColor="#5c94ed"/><stop offset=".58" stopColor="#74a4f0"/><stop offset=".71" stopColor="#94b9f3"/><stop offset=".83" stopColor="#bbd2f7"/><stop offset=".95" stopColor="#e8f0fc"/><stop offset="1" stopColor="#fff"/></linearGradient>
+        <linearGradient id="g20" x1="141.79" y1="0" x2="141.79" y2="631.19" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#3dc7ec"/><stop offset=".13" stopColor="#41c8ec"/><stop offset=".27" stopColor="#4fcced"/><stop offset=".42" stopColor="#66d3f0"/><stop offset=".58" stopColor="#86dcf3"/><stop offset=".75" stopColor="#b0e8f7"/><stop offset=".91" stopColor="#e1f6fc"/><stop offset="1" stopColor="#fff"/></linearGradient>
+        <linearGradient id="g50" x1="253.92" y1="618.49" x2="253.92" y2="265.98" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#17192d"/><stop offset=".12" stopColor="#171b31"/><stop offset=".27" stopColor="#1a2340"/><stop offset=".43" stopColor="#1f3057"/><stop offset=".59" stopColor="#264279"/><stop offset=".77" stopColor="#2e59a3"/><stop offset=".94" stopColor="#3975d7"/><stop offset="1" stopColor="#3d80ea"/></linearGradient>
       </defs>
       <g>
         <path d="M480.21,354.26L251.81,0s70.06,148.29,2.1,265.98c-67.95,117.7-100.39,173.89-100.39,173.89,0,0-47.87,73.38,20.13,143.39,0,0,33.26,35.57,78.16,36.12,20.35,7.63,42.38,11.81,65.4,11.81,102.96,0,186.42-83.46,186.42-186.42,0-32.85-8.51-63.71-23.42-90.51Z" fill="url(#g36)"/>
@@ -136,45 +88,14 @@ function OilBlendLogo({ size, style }) {
 }
 
 /* ══════ CALC ══════ */
-function calculateBlend(v1, v2, vTarget) {
-  var swapped = false;
-  if (v1 < v2) { var tmp = v1; v1 = v2; v2 = tmp; swapped = true; }
-  if (v1 <= 2 || v2 <= 2 || vTarget <= 2) throw new Error("Viscosità deve essere > 2 mm²/s");
-  if (vTarget >= v1 || vTarget <= v2) throw new Error("Target fuori range: deve essere tra i due oli");
-  var W = function(v) { return Math.log10(Math.log10(v + 0.8)); };
-  var x = (W(vTarget) - W(v2)) / (W(v1) - W(v2));
-  return { oil1Pct: x * 100, oil2Pct: (1 - x) * 100, swapped: swapped };
-}
+function calculateBlend(v1,v2,vTarget){var swapped=false;if(v1<v2){var tmp=v1;v1=v2;v2=tmp;swapped=true;}if(v1<=2||v2<=2||vTarget<=2)throw new Error("Viscosità deve essere > 2 mm²/s");if(vTarget>=v1||vTarget<=v2)throw new Error("Target fuori range: deve essere tra i due oli");var W=function(v){return Math.log10(Math.log10(v+0.8));};var x=(W(vTarget)-W(v2))/(W(v1)-W(v2));return{oil1Pct:x*100,oil2Pct:(1-x)*100,swapped:swapped};}
 
 /* ══════ ISO VG ══════ */
-var ISO_VG = [
-  { grade: "VG 2", med: 2.2, min: 1.98, max: 2.42 },{ grade: "VG 3", med: 3.2, min: 2.88, max: 3.52 },
-  { grade: "VG 5", med: 4.6, min: 4.14, max: 5.06 },{ grade: "VG 7", med: 6.8, min: 6.12, max: 7.48 },
-  { grade: "VG 10", med: 10, min: 9.0, max: 11.0 },{ grade: "VG 15", med: 15, min: 13.5, max: 16.5 },
-  { grade: "VG 22", med: 22, min: 19.8, max: 24.2 },{ grade: "VG 32", med: 32, min: 28.8, max: 35.2 },
-  { grade: "VG 46", med: 46, min: 41.4, max: 50.6 },{ grade: "VG 68", med: 68, min: 61.2, max: 74.8 },
-  { grade: "VG 100", med: 100, min: 90, max: 110 },{ grade: "VG 150", med: 150, min: 135, max: 165 },
-  { grade: "VG 220", med: 220, min: 198, max: 242 },{ grade: "VG 320", med: 320, min: 288, max: 352 },
-  { grade: "VG 460", med: 460, min: 414, max: 506 },{ grade: "VG 680", med: 680, min: 612, max: 748 },
-  { grade: "VG 1000", med: 1000, min: 900, max: 1100 },{ grade: "VG 1500", med: 1500, min: 1350, max: 1650 },
-  { grade: "VG 2200", med: 2200, min: 1980, max: 2420 },{ grade: "VG 3200", med: 3200, min: 2880, max: 3520 },
-];
-function findISOGrade(v) { if (v==null||isNaN(v)) return null; return ISO_VG.find(function(g){return v>=g.min&&v<=g.max;})||null; }
+var ISO_VG=[{grade:"VG 2",med:2.2,min:1.98,max:2.42},{grade:"VG 3",med:3.2,min:2.88,max:3.52},{grade:"VG 5",med:4.6,min:4.14,max:5.06},{grade:"VG 7",med:6.8,min:6.12,max:7.48},{grade:"VG 10",med:10,min:9,max:11},{grade:"VG 15",med:15,min:13.5,max:16.5},{grade:"VG 22",med:22,min:19.8,max:24.2},{grade:"VG 32",med:32,min:28.8,max:35.2},{grade:"VG 46",med:46,min:41.4,max:50.6},{grade:"VG 68",med:68,min:61.2,max:74.8},{grade:"VG 100",med:100,min:90,max:110},{grade:"VG 150",med:150,min:135,max:165},{grade:"VG 220",med:220,min:198,max:242},{grade:"VG 320",med:320,min:288,max:352},{grade:"VG 460",med:460,min:414,max:506},{grade:"VG 680",med:680,min:612,max:748},{grade:"VG 1000",med:1000,min:900,max:1100},{grade:"VG 1500",med:1500,min:1350,max:1650},{grade:"VG 2200",med:2200,min:1980,max:2420},{grade:"VG 3200",med:3200,min:2880,max:3520}];
+function findISOGrade(v){if(v==null||isNaN(v))return null;return ISO_VG.find(function(g){return v>=g.min&&v<=g.max;})||null;}
 
 /* ══════ TOKENS ══════ */
-var T = {
-  bg:"#0F1120",bgCard:"rgba(22,26,48,0.85)",bgInput:"rgba(255,255,255,0.04)",
-  accent:"#4FC3F7",accentDim:"rgba(79,195,247,0.12)",accentBorder:"rgba(79,195,247,0.25)",
-  blue:"#3d80ea",cyan:"#3dc7ec",
-  green:"#66BB6A",greenDim:"rgba(102,187,106,0.1)",greenBorder:"rgba(102,187,106,0.25)",
-  yellow:"#FFD54F",yellowDim:"rgba(255,213,79,0.08)",yellowBorder:"rgba(255,213,79,0.2)",
-  red:"#EF5350",redDim:"rgba(239,83,80,0.08)",redBorder:"rgba(239,83,80,0.2)",
-  orange:"#FF8A65",orangeDim:"rgba(255,138,101,0.06)",orangeBorder:"rgba(255,138,101,0.2)",
-  purple:"#AB47BC",
-  text:"#E8EAF0",textDim:"#7B8294",textMuted:"#3A3F5A",
-  border:"rgba(255,255,255,0.06)",
-  font:"'Outfit',sans-serif",mono:"'JetBrains Mono',monospace",
-};
+var T={bg:"#0F1120",bgCard:"rgba(22,26,48,0.85)",bgInput:"rgba(255,255,255,0.04)",accent:"#4FC3F7",accentDim:"rgba(79,195,247,0.12)",accentBorder:"rgba(79,195,247,0.25)",blue:"#3d80ea",cyan:"#3dc7ec",green:"#66BB6A",greenDim:"rgba(102,187,106,0.1)",greenBorder:"rgba(102,187,106,0.25)",yellow:"#FFD54F",yellowDim:"rgba(255,213,79,0.08)",yellowBorder:"rgba(255,213,79,0.2)",red:"#EF5350",redDim:"rgba(239,83,80,0.08)",redBorder:"rgba(239,83,80,0.2)",orange:"#FF8A65",orangeDim:"rgba(255,138,101,0.06)",orangeBorder:"rgba(255,138,101,0.2)",purple:"#AB47BC",text:"#E8EAF0",textDim:"#7B8294",textMuted:"#3A3F5A",border:"rgba(255,255,255,0.06)",font:"'Outfit',sans-serif",mono:"'JetBrains Mono',monospace"};
 
 /* ══════ STORAGE ══════ */
 var _s={};
@@ -182,55 +103,53 @@ function sGet(k){try{var v=localStorage.getItem(k);if(v)return JSON.parse(v);}ca
 function sSet(k,v){_s[k]=v;try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
 /* ══════ SPLASH ══════ */
-function SplashScreen({ onDone, userName }) {
-  const [fading, setFading] = useState(false);
-  useEffect(function(){
-    var t1=setTimeout(function(){setFading(true);},2800);
-    var t2=setTimeout(function(){onDone();},3400);
-    return function(){clearTimeout(t1);clearTimeout(t2);};
-  },[]);
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:100,background:"radial-gradient(ellipse at 50% 40%,#1a2340 0%,#0F1120 70%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",opacity:fading?0:1,transition:"opacity 0.6s ease-out" }}>
-      <div className="splash-logo splash-logo-glow"><OilBlendLogo size={Math.min(120, window.innerWidth * 0.28)} /></div>
-      <div className="splash-title" style={{ marginTop:28,fontSize:Math.min(36,window.innerWidth*0.09),fontWeight:900,letterSpacing:-1,background:"linear-gradient(135deg,#3d80ea,#3dc7ec,#fff)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text" }}>OilBlend</div>
-      <div className="splash-subtitle" style={{ marginTop:8,fontSize:13,color:T.textDim,textAlign:"center",maxWidth:280,lineHeight:1.5,letterSpacing:0.5,padding:"0 20px" }}>
-        Il calcolatore tecnico di viscosità<br/>per oli industriali
-      </div>
-      {userName && <div className="splash-tagline" style={{ marginTop:24,fontSize:15,color:T.accent,fontWeight:600 }}>{"Bentornato, "+userName}</div>}
+function SplashScreen({onDone,userName}){
+  const[fading,setFading]=useState(false);
+  useEffect(function(){var t1=setTimeout(function(){setFading(true);},2800);var t2=setTimeout(function(){onDone();},3400);return function(){clearTimeout(t1);clearTimeout(t2);};},[]);
+  return(
+    <div style={{position:"fixed",inset:0,zIndex:100,background:"radial-gradient(ellipse at 50% 40%,#1a2340 0%,#0F1120 70%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",opacity:fading?0:1,transition:"opacity 0.6s ease-out"}}>
+      <div className="splash-logo splash-logo-glow"><OilBlendLogo size={Math.min(120,window.innerWidth*.28)}/></div>
+      <div className="splash-title" style={{marginTop:28,fontSize:Math.min(36,window.innerWidth*.09),fontWeight:900,letterSpacing:-1,background:"linear-gradient(135deg,#3d80ea,#3dc7ec,#fff)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>OilBlend</div>
+      <div className="splash-subtitle" style={{marginTop:8,fontSize:13,color:T.textDim,textAlign:"center",maxWidth:280,lineHeight:1.5,letterSpacing:.5,padding:"0 20px"}}>Il calcolatore tecnico di viscosità<br/>per oli industriali</div>
+      {userName&&<div className="splash-tagline" style={{marginTop:24,fontSize:15,color:T.accent,fontWeight:600}}>{"Bentornato, "+userName}</div>}
     </div>
   );
 }
 
 /* ══════ ONBOARDING ══════ */
-function OnboardingScreen({ onComplete }) {
-  const [step,setStep]=useState(0);
-  const [name,setName]=useState("");
-  const [company,setCompany]=useState("");
-  const [email,setEmail]=useState("");
-  const [phone,setPhone]=useState("");
-  const [sending,setSending]=useState(false);
-  const [errors,setErrors]=useState({});
+function OnboardingScreen({onComplete}){
+  const[step,setStep]=useState(0);
+  const[name,setName]=useState("");const[company,setCompany]=useState("");const[email,setEmail]=useState("");const[phone,setPhone]=useState("");
+  const[sending,setSending]=useState(false);const[errors,setErrors]=useState({});const[submitError,setSubmitError]=useState(null);
 
   useEffect(function(){var t=setTimeout(function(){setStep(1);},3200);return function(){clearTimeout(t);};},[]);
 
-  function validate(){
-    var e={};
-    if(!name.trim()) e.name="Inserisci il tuo nome";
-    if(!company.trim()) e.company="Inserisci il nome dell'azienda";
-    if(!email.trim()||!/\S+@\S+\.\S+/.test(email)) e.email="Inserisci un'email valida";
-    if(!phone.trim()||phone.replace(/\D/g,"").length<6) e.phone="Inserisci un numero valido";
-    setErrors(e); return Object.keys(e).length===0;
+  function validate(){var e={};if(!name.trim())e.name="Inserisci il tuo nome";if(!company.trim())e.company="Inserisci il nome dell'azienda";if(!email.trim()||!/\S+@\S+\.\S+/.test(email))e.email="Inserisci un'email valida";if(!phone.trim()||phone.replace(/\D/g,"").length<6)e.phone="Inserisci un numero valido";setErrors(e);return Object.keys(e).length===0;}
+
+  async function handleSubmit(){
+    if(!validate())return;
+    setSending(true);setSubmitError(null);
+    var userData={name:name.trim(),company:company.trim(),email:email.trim(),phone:phone.trim()};
+
+    try{
+      // Send to Supabase
+      await supabaseInsert("oilblend_users",userData);
+      // Save locally
+      userData.registeredAt=new Date().toISOString();
+      sSet("oilblend_user",userData);
+      setSending(false);
+      onComplete(userData);
+    }catch(err){
+      console.error("Supabase insert failed:",err);
+      // Still allow access even if DB fails — save locally
+      userData.registeredAt=new Date().toISOString();
+      sSet("oilblend_user",userData);
+      setSending(false);
+      onComplete(userData);
+    }
   }
 
-  function handleSubmit(){
-    if(!validate()) return;
-    setSending(true);
-    var userData={name:name.trim(),company:company.trim(),email:email.trim(),phone:phone.trim(),registeredAt:new Date().toISOString()};
-    sSet("oilblend_user",userData);
-    setTimeout(function(){setSending(false);onComplete(userData);},1200);
-  }
-
-  if(step===0) return <SplashScreen onDone={function(){}}/>;
+  if(step===0)return <SplashScreen onDone={function(){}}/>;
 
   var is={width:"100%",boxSizing:"border-box",padding:"15px 16px",fontSize:16,fontWeight:500,fontFamily:T.font,background:"rgba(255,255,255,0.05)",border:"1.5px solid "+T.border,borderRadius:12,color:T.text,outline:"none",transition:"border-color 0.2s"};
   var fields=[
@@ -240,33 +159,25 @@ function OnboardingScreen({ onComplete }) {
     {key:"phone",label:"Numero di Telefono",value:phone,set:setPhone,placeholder:"+39 333 1234567",type:"tel",icon:"📱",delay:.24},
   ];
 
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:90,background:"radial-gradient(ellipse at 50% 20%,#1a2340 0%,#0F1120 70%)",display:"flex",flexDirection:"column",overflow:"auto",WebkitOverflowScrolling:"touch" }}>
-      <div style={{ textAlign:"center",padding:"max(env(safe-area-inset-top,20px),40px) 24px 20px",flexShrink:0 }}>
-        <div style={{animation:"dropFall 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards"}}><OilBlendLogo size={Math.min(64,window.innerWidth*0.16)}/></div>
-        <div style={{ marginTop:16,fontSize:Math.min(28,window.innerWidth*0.07),fontWeight:900,letterSpacing:-0.5,background:"linear-gradient(135deg,#3d80ea,#3dc7ec)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",animation:"fadeUp 0.6s ease-out 0.3s both" }}>Benvenuto in OilBlend</div>
-        <div style={{ marginTop:8,fontSize:14,color:T.textDim,lineHeight:1.5,animation:"fadeUp 0.6s ease-out 0.5s both" }}>Registrati per accedere al calcolatore</div>
+  return(
+    <div style={{position:"fixed",inset:0,zIndex:90,background:"radial-gradient(ellipse at 50% 20%,#1a2340 0%,#0F1120 70%)",display:"flex",flexDirection:"column",overflow:"auto",WebkitOverflowScrolling:"touch"}}>
+      <div style={{textAlign:"center",padding:"max(env(safe-area-inset-top,20px),40px) 24px 20px",flexShrink:0}}>
+        <div style={{animation:"dropFall 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards"}}><OilBlendLogo size={Math.min(64,window.innerWidth*.16)}/></div>
+        <div style={{marginTop:16,fontSize:Math.min(28,window.innerWidth*.07),fontWeight:900,letterSpacing:-.5,background:"linear-gradient(135deg,#3d80ea,#3dc7ec)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",animation:"fadeUp 0.6s ease-out 0.3s both"}}>Benvenuto in OilBlend</div>
+        <div style={{marginTop:8,fontSize:14,color:T.textDim,lineHeight:1.5,animation:"fadeUp 0.6s ease-out 0.5s both"}}>Registrati per accedere al calcolatore</div>
       </div>
-      <div style={{ padding:"0 24px 40px",flex:1 }}>
-        {fields.map(function(f){
-          return (
-            <div key={f.key} className="onboard-field" style={{marginBottom:16,animationDelay:(0.6+f.delay)+"s"}}>
-              <label style={{display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>
-                <span>{f.icon}</span> {f.label}
-              </label>
-              <input type={f.type} value={f.value} placeholder={f.placeholder} onChange={function(e){f.set(e.target.value);}}
-                style={Object.assign({},is,{borderColor:errors[f.key]?T.red+"60":(f.value?"rgba(61,128,234,0.3)":T.border)})}/>
-              {errors[f.key]&&<div style={{fontSize:11,color:T.red,marginTop:4,paddingLeft:4}}>{errors[f.key]}</div>}
-            </div>
-          );
-        })}
+      <div style={{padding:"0 24px 40px",flex:1}}>
+        {fields.map(function(f){return(
+          <div key={f.key} className="onboard-field" style={{marginBottom:16,animationDelay:(0.6+f.delay)+"s"}}>
+            <label style={{display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}><span>{f.icon}</span> {f.label}</label>
+            <input type={f.type} value={f.value} placeholder={f.placeholder} onChange={function(e){f.set(e.target.value);}}
+              style={Object.assign({},is,{borderColor:errors[f.key]?T.red+"60":(f.value?"rgba(61,128,234,0.3)":T.border)})}/>
+            {errors[f.key]&&<div style={{fontSize:11,color:T.red,marginTop:4,paddingLeft:4}}>{errors[f.key]}</div>}
+          </div>
+        );})}
+        {submitError&&<div style={{padding:"10px 14px",borderRadius:10,background:T.yellowDim,border:"1px solid "+T.yellowBorder,fontSize:12,color:T.yellow,marginBottom:12}}>{submitError}</div>}
         <div className="onboard-field" style={{animationDelay:"1.0s",marginTop:24}}>
-          <button className="btn-primary" onClick={handleSubmit} disabled={sending} style={{
-            opacity:sending?0.7:1,
-            background:sending?"linear-gradient(90deg,#3d80ea,#3dc7ec,#3d80ea)":"linear-gradient(135deg,#3d80ea,#3dc7ec)",
-            backgroundSize:sending?"200% 100%":"100% 100%",
-            animation:sending?"shimmer 1.5s linear infinite":"none",
-          }}>{sending?"Invio in corso...":"ACCEDI A OILBLEND"}</button>
+          <button className="btn-primary" onClick={handleSubmit} disabled={sending} style={{opacity:sending?.7:1,background:sending?"linear-gradient(90deg,#3d80ea,#3dc7ec,#3d80ea)":"linear-gradient(135deg,#3d80ea,#3dc7ec)",backgroundSize:sending?"200% 100%":"100% 100%",animation:sending?"shimmer 1.5s linear infinite":"none"}}>{sending?"Invio in corso...":"ACCEDI A OILBLEND"}</button>
         </div>
         <div className="onboard-field" style={{animationDelay:"1.1s",textAlign:"center",marginTop:16}}>
           <p style={{fontSize:11,color:T.textMuted,lineHeight:1.6}}>I tuoi dati verranno utilizzati solo per<br/>un'esperienza personalizzata.</p>
@@ -285,77 +196,37 @@ var UserIconSvg=function(p){return(<svg width="22" height="22" viewBox="0 0 24 2
 /* ══════ SHARED ══════ */
 var inputBase={width:"100%",boxSizing:"border-box",padding:"14px 60px 14px 16px",fontSize:16,fontWeight:600,fontFamily:T.font,background:T.bgInput,border:"1.5px solid "+T.border,borderRadius:12,color:T.text,outline:"none",transition:"border-color 0.2s"};
 
-function InputField(p){
-  var tp=p.type||"number";
-  return(
-    <div style={{marginBottom:14}}>
-      <label style={{display:"block",fontSize:11,fontWeight:700,color:p.color||T.textDim,textTransform:"uppercase",letterSpacing:1.2,marginBottom:6}}>{p.label}</label>
-      <div style={{position:"relative"}}>
-        <input type={tp} inputMode={tp==="number"?"decimal":"text"} placeholder={p.placeholder} value={p.value}
-          onChange={function(e){p.onChange(e.target.value);}} onFocus={p.onFocusCb}
-          style={Object.assign({},inputBase,{borderColor:p.value?(p.color?p.color+"40":T.accentBorder):T.border,paddingRight:p.unit?60:16})}/>
-        {p.unit&&<span style={{position:"absolute",right:16,top:"50%",transform:"translateY(-50%)",fontSize:12,color:T.textDim,fontWeight:500,pointerEvents:"none"}}>{p.unit}</span>}
-      </div>
-    </div>
-  );
-}
+function InputField(p){var tp=p.type||"number";return(<div style={{marginBottom:14}}><label style={{display:"block",fontSize:11,fontWeight:700,color:p.color||T.textDim,textTransform:"uppercase",letterSpacing:1.2,marginBottom:6}}>{p.label}</label><div style={{position:"relative"}}><input type={tp} inputMode={tp==="number"?"decimal":"text"} placeholder={p.placeholder} value={p.value} onChange={function(e){p.onChange(e.target.value);}} onFocus={p.onFocusCb} style={Object.assign({},inputBase,{borderColor:p.value?(p.color?p.color+"40":T.accentBorder):T.border,paddingRight:p.unit?60:16})}/>{p.unit&&<span style={{position:"absolute",right:16,top:"50%",transform:"translateY(-50%)",fontSize:12,color:T.textDim,fontWeight:500,pointerEvents:"none"}}>{p.unit}</span>}</div></div>);}
 
-function Notice(p){
-  var s={yellow:{bg:T.yellowDim,border:T.yellowBorder,color:T.yellow,icon:"⚠️"},red:{bg:T.redDim,border:T.redBorder,color:T.red,icon:"✕"},green:{bg:T.greenDim,border:T.greenBorder,color:T.green,icon:"✓"},blue:{bg:T.accentDim,border:T.accentBorder,color:T.accent,icon:"ℹ"}}[p.type];
-  return(<div style={{padding:"12px 14px",borderRadius:10,background:s.bg,border:"1px solid "+s.border,fontSize:13,color:s.color,lineHeight:1.6,marginTop:12,display:"flex",gap:8,alignItems:"flex-start"}}><span style={{flexShrink:0}}>{s.icon}</span><span>{p.children}</span></div>);
-}
+function Notice(p){var s={yellow:{bg:T.yellowDim,border:T.yellowBorder,color:T.yellow,icon:"⚠️"},red:{bg:T.redDim,border:T.redBorder,color:T.red,icon:"✕"},green:{bg:T.greenDim,border:T.greenBorder,color:T.green,icon:"✓"},blue:{bg:T.accentDim,border:T.accentBorder,color:T.accent,icon:"ℹ"}}[p.type];return(<div style={{padding:"12px 14px",borderRadius:10,background:s.bg,border:"1px solid "+s.border,fontSize:13,color:s.color,lineHeight:1.6,marginTop:12,display:"flex",gap:8,alignItems:"flex-start"}}><span style={{flexShrink:0}}>{s.icon}</span><span>{p.children}</span></div>);}
 
-function ResultBar(p){
-  const[w,setW]=useState(0);
-  useEffect(function(){setW(0);var t=setTimeout(function(){setW(p.pct1);},60);return function(){clearTimeout(t);};},[p.pct1]);
-  return(
-    <div style={{display:"flex",borderRadius:10,overflow:"hidden",height:36,background:"rgba(0,0,0,0.3)",border:"1px solid "+T.border,marginTop:14}}>
-      <div style={{width:w+"%",transition:"width 0.8s cubic-bezier(.4,0,.2,1)",background:"linear-gradient(90deg,"+T.blue+","+T.cyan+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff",minWidth:w>10?52:0,overflow:"hidden"}}>{w>10&&p.pct1.toFixed(1)+"%"}</div>
-      <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:T.orange,background:T.orangeDim}}>{p.pct2.toFixed(1)+"%"}</div>
-    </div>
-  );
-}
+function ResultBar(p){const[w,setW]=useState(0);useEffect(function(){setW(0);var t=setTimeout(function(){setW(p.pct1);},60);return function(){clearTimeout(t);};},[p.pct1]);return(<div style={{display:"flex",borderRadius:10,overflow:"hidden",height:36,background:"rgba(0,0,0,0.3)",border:"1px solid "+T.border,marginTop:14}}><div style={{width:w+"%",transition:"width 0.8s cubic-bezier(.4,0,.2,1)",background:"linear-gradient(90deg,"+T.blue+","+T.cyan+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff",minWidth:w>10?52:0,overflow:"hidden"}}>{w>10&&p.pct1.toFixed(1)+"%"}</div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:T.orange,background:T.orangeDim}}>{p.pct2.toFixed(1)+"%"}</div></div>);}
 
 /* ══════ SCREEN 1 — Calculator ══════ */
 function CalculatorScreen(p){
   const[v1,setV1]=useState("");const[v2,setV2]=useState("");const[vT,setVT]=useState("");
   const[liters,setLiters]=useState("");const[temp,setTemp]=useState("");const[error,setError]=useState(null);
-
   useEffect(function(){if(p.fillValue===null)return;var val=p.fillValue.toString();if(p.lastFocused==="v1")setV1(val);else if(p.lastFocused==="v2")setV2(val);else setVT(val);},[p.fillValue]);
-
-  function calc(){
-    var a=parseFloat(v1),b=parseFloat(v2),t=parseFloat(vT);
-    if(isNaN(a)||isNaN(b)||isNaN(t)){setError("Inserisci tutti e tre i valori di viscosità.");p.setResult(null);return;}
-    try{var r=calculateBlend(a,b,t);var totalL=parseFloat(liters);
-      p.setResult({oil1Pct:r.oil1Pct,oil2Pct:r.oil2Pct,swapped:r.swapped,v1:a,v2:b,vT:t,liters:(!isNaN(totalL)&&totalL>0)?totalL:null,temp:temp.trim()||null,isoMatch:findISOGrade(t)});
-      setError(null);
-    }catch(e){setError(e.message);p.setResult(null);}
-  }
+  function calc(){var a=parseFloat(v1),b=parseFloat(v2),t=parseFloat(vT);if(isNaN(a)||isNaN(b)||isNaN(t)){setError("Inserisci tutti e tre i valori di viscosità.");p.setResult(null);return;}try{var r=calculateBlend(a,b,t);var totalL=parseFloat(liters);p.setResult({oil1Pct:r.oil1Pct,oil2Pct:r.oil2Pct,swapped:r.swapped,v1:a,v2:b,vT:t,liters:(!isNaN(totalL)&&totalL>0)?totalL:null,temp:temp.trim()||null,isoMatch:findISOGrade(t)});setError(null);}catch(e){setError(e.message);p.setResult(null);}}
   function reset(){setV1("");setV2("");setVT("");setLiters("");setTemp("");setError(null);p.setResult(null);}
-
   var result=p.result;
   return(
     <div style={{padding:"16px 18px 24px"}}>
-      <h1 style={{fontSize:Math.min(22,window.innerWidth*0.055),fontWeight:800,color:T.text,margin:"0 0 4px",letterSpacing:-0.5}}>Viscosity Blending Calculator</h1>
+      <h1 style={{fontSize:Math.min(22,window.innerWidth*.055),fontWeight:800,color:T.text,margin:"0 0 4px",letterSpacing:-.5}}>Viscosity Blending Calculator</h1>
       <p style={{fontSize:13,color:T.textDim,margin:"0 0 18px"}}>Inserisci i valori alla stessa temperatura</p>
-
       <InputField label="Viscosità Olio 1 (mm²/s)" value={v1} onChange={setV1} placeholder="es. 220" unit="mm²/s" color={T.accent} onFocusCb={function(){p.setLastFocused("v1");}}/>
       <InputField label="Viscosità Olio 2 (mm²/s)" value={v2} onChange={setV2} placeholder="es. 68" unit="mm²/s" color={T.orange} onFocusCb={function(){p.setLastFocused("v2");}}/>
       <InputField label="Viscosità Finale desiderata (mm²/s)" value={vT} onChange={setVT} placeholder="es. 150" unit="mm²/s" color={T.purple} onFocusCb={function(){p.setLastFocused("vT");}}/>
-
       <div style={{display:"flex",gap:12,marginBottom:2}}>
         <div style={{flex:1}}><InputField label="Quantità totale (L)" value={liters} onChange={setLiters} placeholder="opzionale" unit="L"/></div>
         <div style={{flex:1}}><InputField label="Temperatura rif." value={temp} onChange={setTemp} placeholder="es. 40°C" type="text"/></div>
       </div>
-
       <div style={{display:"flex",gap:10,marginTop:14}}>
         <button className="btn-primary" onClick={calc}>CALCOLA</button>
         {(v1||v2||vT)&&<button onClick={reset} style={{padding:"16px 18px",borderRadius:14,border:"1.5px solid "+T.border,background:"transparent",color:T.textDim,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:T.font,flexShrink:0}}>Reset</button>}
       </div>
-
       {error&&<Notice type="red">{error}</Notice>}
       {result&&result.swapped&&<Notice type="yellow">I valori sono stati scambiati: Olio 1 è quello più viscoso.</Notice>}
-
       {result&&!error&&(
         <div style={{marginTop:20,borderRadius:18,overflow:"hidden",background:T.bgCard,border:"1px solid "+T.accentBorder,boxShadow:"0 8px 40px rgba(61,128,234,0.08)"}}>
           <div style={{padding:"16px 18px 14px",background:"linear-gradient(135deg,"+T.accentDim+",transparent)",borderBottom:"1px solid "+T.border}}>
@@ -367,21 +238,17 @@ function CalculatorScreen(p){
             <div style={{flex:1,padding:"12px",borderRadius:14,background:T.accentDim,border:"1px solid "+T.accentBorder,textAlign:"center"}}>
               <div style={{fontSize:9,color:T.accent,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Olio 1 {result.swapped?"(più viscoso)":""}</div>
               <div style={{fontFamily:T.mono,fontSize:26,fontWeight:700,color:T.accent,lineHeight:1}}>{result.oil1Pct.toFixed(1)}<span style={{fontSize:14}}>%</span></div>
-              {result.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.accent,marginTop:4,opacity:0.8}}>{(result.liters*result.oil1Pct/100).toFixed(1)} L</div>}
+              {result.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.accent,marginTop:4,opacity:.8}}>{(result.liters*result.oil1Pct/100).toFixed(1)} L</div>}
               <div style={{fontSize:11,color:T.textDim,marginTop:4}}>{result.swapped?result.v2:result.v1} mm²/s</div>
             </div>
             <div style={{flex:1,padding:"12px",borderRadius:14,background:T.orangeDim,border:"1px solid "+T.orangeBorder,textAlign:"center"}}>
               <div style={{fontSize:9,color:T.orange,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Olio 2</div>
               <div style={{fontFamily:T.mono,fontSize:26,fontWeight:700,color:T.orange,lineHeight:1}}>{result.oil2Pct.toFixed(1)}<span style={{fontSize:14}}>%</span></div>
-              {result.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.orange,marginTop:4,opacity:0.8}}>{(result.liters*result.oil2Pct/100).toFixed(1)} L</div>}
+              {result.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.orange,marginTop:4,opacity:.8}}>{(result.liters*result.oil2Pct/100).toFixed(1)} L</div>}
               <div style={{fontSize:11,color:T.textDim,marginTop:4}}>{result.swapped?result.v1:result.v2} mm²/s</div>
             </div>
           </div>
-          {result.isoMatch&&(
-            <div style={{margin:"0 16px 12px",padding:"10px 12px",borderRadius:10,background:T.greenDim,border:"1px solid "+T.greenBorder,fontSize:12,color:T.green,fontWeight:600}}>
-              {"✓ Target = ISO "+result.isoMatch.grade+" ("+result.isoMatch.min+"–"+result.isoMatch.max+" mm²/s)"}
-            </div>
-          )}
+          {result.isoMatch&&(<div style={{margin:"0 16px 12px",padding:"10px 12px",borderRadius:10,background:T.greenDim,border:"1px solid "+T.greenBorder,fontSize:12,color:T.green,fontWeight:600}}>{"✓ Target = ISO "+result.isoMatch.grade+" ("+result.isoMatch.min+"–"+result.isoMatch.max+" mm²/s)"}</div>)}
         </div>
       )}
     </div>
@@ -399,17 +266,14 @@ function ISOTableScreen(p){
         <div style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"10px 12px",background:T.accentDim,borderBottom:"1px solid "+T.border,fontSize:10,fontWeight:700,color:T.accent,textTransform:"uppercase",letterSpacing:1}}>
           <div>Grado</div><div style={{textAlign:"right"}}>Media</div><div style={{textAlign:"right"}}>Min</div><div style={{textAlign:"right"}}>Max</div>
         </div>
-        {ISO_VG.map(function(g,i){
-          var m=mg===g.grade;
-          return(
-            <div key={g.grade} onClick={function(){p.onTapGrade(g.med);}} style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"11px 12px",cursor:"pointer",background:m?T.greenDim:(i%2===0?"rgba(255,255,255,0.01)":"rgba(255,255,255,0.025)"),borderBottom:"1px solid "+T.border,borderLeft:m?"3px solid "+T.green:"3px solid transparent",alignItems:"center"}}>
-              <div style={{fontWeight:700,fontSize:12,color:m?T.green:T.text}}>{"ISO "+g.grade}</div>
-              <div style={{textAlign:"right",fontFamily:T.mono,fontWeight:700,fontSize:13,color:m?T.green:T.accent}}>{g.med}</div>
-              <div style={{textAlign:"right",fontFamily:T.mono,fontSize:12,color:T.textDim}}>{g.min}</div>
-              <div style={{textAlign:"right",fontFamily:T.mono,fontSize:12,color:T.textDim}}>{g.max}</div>
-            </div>
-          );
-        })}
+        {ISO_VG.map(function(g,i){var m=mg===g.grade;return(
+          <div key={g.grade} onClick={function(){p.onTapGrade(g.med);}} style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"11px 12px",cursor:"pointer",background:m?T.greenDim:(i%2===0?"rgba(255,255,255,0.01)":"rgba(255,255,255,0.025)"),borderBottom:"1px solid "+T.border,borderLeft:m?"3px solid "+T.green:"3px solid transparent",alignItems:"center"}}>
+            <div style={{fontWeight:700,fontSize:12,color:m?T.green:T.text}}>{"ISO "+g.grade}</div>
+            <div style={{textAlign:"right",fontFamily:T.mono,fontWeight:700,fontSize:13,color:m?T.green:T.accent}}>{g.med}</div>
+            <div style={{textAlign:"right",fontFamily:T.mono,fontSize:12,color:T.textDim}}>{g.min}</div>
+            <div style={{textAlign:"right",fontFamily:T.mono,fontSize:12,color:T.textDim}}>{g.max}</div>
+          </div>
+        );})}
       </div>
       <Notice type="blue">Tocca un grado per inserirne il valore mediano nell'ultimo campo selezionato.{mg&&<span><br/><strong style={{color:T.green}}>Verde</strong> = risultato attuale.</span>}</Notice>
     </div>
@@ -418,32 +282,24 @@ function ISOTableScreen(p){
 
 /* ══════ SCREEN 3 — Info ══════ */
 function InfoScreen(){
-  var h3s={fontSize:15,fontWeight:700,color:T.text,margin:"22px 0 8px"};
-  var ps={fontSize:13,color:T.textDim,lineHeight:1.7,margin:"0 0 8px"};
+  var h3s={fontSize:15,fontWeight:700,color:T.text,margin:"22px 0 8px"};var ps={fontSize:13,color:T.textDim,lineHeight:1.7,margin:"0 0 8px"};
   return(
     <div style={{padding:"20px 18px 40px"}}>
       <h2 style={{fontSize:20,fontWeight:800,color:T.text,margin:"0 0 4px"}}>Informazioni</h2>
       <p style={{fontSize:12,color:T.textDim,margin:"0 0 16px"}}>Metodo di calcolo e note d'uso</p>
-      <div style={{padding:"14px 16px",borderRadius:14,background:T.yellowDim,border:"1px solid "+T.yellowBorder,fontSize:13,color:T.yellow,lineHeight:1.6}}>
-        <strong>⚠️ Attenzione</strong><br/>Le viscosità devono essere alla <strong>stessa temperatura</strong>. Valido solo per valori &gt; <strong>2 mm²/s</strong>.
-      </div>
+      <div style={{padding:"14px 16px",borderRadius:14,background:T.yellowDim,border:"1px solid "+T.yellowBorder,fontSize:13,color:T.yellow,lineHeight:1.6}}><strong>⚠️ Attenzione</strong><br/>Le viscosità devono essere alla <strong>stessa temperatura</strong>. Valido solo per valori &gt; <strong>2 mm²/s</strong>.</div>
       <h3 style={h3s}>Metodo ASTM D341 (Walther)</h3>
       <p style={ps}>Standard internazionale per stimare la viscosità di miscele di oli lubrificanti, basato sulla relazione doppio-logaritmica tra viscosità e composizione.</p>
       <h3 style={h3s}>Formula</h3>
       <div style={{padding:"14px",borderRadius:14,background:"rgba(255,255,255,0.03)",border:"1px solid "+T.border,fontFamily:T.mono,fontSize:12,color:T.accent,lineHeight:2.2,overflowX:"auto"}}>
-        <div style={{color:T.textDim,fontSize:10}}>{"// Walther"}</div>
-        <div>{"W(ν) = log₁₀(log₁₀(ν + 0.8))"}</div>
-        <div style={{marginTop:8,color:T.textDim,fontSize:10}}>{"// Olio 1 %"}</div>
-        <div>{"x = (W(ν_t) − W(ν₂)) / (W(ν₁) − W(ν₂))"}</div>
+        <div style={{color:T.textDim,fontSize:10}}>{"// Walther"}</div><div>{"W(ν) = log₁₀(log₁₀(ν + 0.8))"}</div>
+        <div style={{marginTop:8,color:T.textDim,fontSize:10}}>{"// Olio 1 %"}</div><div>{"x = (W(ν_t) − W(ν₂)) / (W(ν₁) − W(ν₂))"}</div>
         <div style={{marginTop:8}}>{"Olio1 = x×100%  ·  Olio2 = (1−x)×100%"}</div>
       </div>
       <h3 style={h3s}>Limiti</h3>
       <p style={ps}>Funziona per oli minerali e sintetici con ν &gt; 2 mm²/s. Non applicabile a emulsioni o oli con additivi polimerici. Evitare differenze eccessive.</p>
       <div style={{marginTop:28,padding:"14px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,textAlign:"center"}}>
-        <OilBlendLogo size={28} style={{margin:"0 auto 8px",display:"block"}}/>
-        <div style={{fontSize:16,fontWeight:800,color:T.text}}>OilBlend</div>
-        <div style={{fontSize:11,color:T.textDim,marginTop:4}}>Versione 1.0.0</div>
-        <div style={{fontSize:10,color:T.textMuted,marginTop:2}}>ASTM D341 · Walther</div>
+        <OilBlendLogo size={28} style={{margin:"0 auto 8px",display:"block"}}/><div style={{fontSize:16,fontWeight:800,color:T.text}}>OilBlend</div><div style={{fontSize:11,color:T.textDim,marginTop:4}}>Versione 1.0.0</div><div style={{fontSize:10,color:T.textMuted,marginTop:2}}>ASTM D341 · Walther</div>
       </div>
     </div>
   );
@@ -464,13 +320,9 @@ function ProfileScreen(p){
 
 /* ══════ MAIN APP ══════ */
 function App(){
-  const[phase,setPhase]=useState("loading");
-  const[user,setUser]=useState(null);
-  const[tab,setTab]=useState("calc");
-  const[lastFocused,setLastFocused]=useState("vT");
-  const[result,setResult]=useState(null);
-  const[fillValue,setFillValue]=useState(null);
-  const[fillCounter,setFillCounter]=useState(0);
+  const[phase,setPhase]=useState("loading");const[user,setUser]=useState(null);
+  const[tab,setTab]=useState("calc");const[lastFocused,setLastFocused]=useState("vT");
+  const[result,setResult]=useState(null);const[fillValue,setFillValue]=useState(null);const[fillCounter,setFillCounter]=useState(0);
 
   useEffect(function(){var stored=sGet("oilblend_user");if(stored&&stored.name){setUser(stored);setPhase("splash");}else{setPhase("onboarding");}},[]);
 
@@ -479,51 +331,34 @@ function App(){
   function handleLogout(){sSet("oilblend_user",null);try{localStorage.removeItem("oilblend_user");}catch(e){}setUser(null);setResult(null);setPhase("onboarding");}
   function handleISOTap(med){setFillValue(med);setFillCounter(function(c){return c+1;});setTab("calc");}
 
-  if(phase==="loading") return null;
-  if(phase==="onboarding") return <OnboardingScreen onComplete={handleOnboardComplete}/>;
-  if(phase==="splash") return <SplashScreen onDone={handleSplashDone} userName={user?user.name.split(" ")[0]:null}/>;
+  if(phase==="loading")return null;
+  if(phase==="onboarding")return <OnboardingScreen onComplete={handleOnboardComplete}/>;
+  if(phase==="splash")return <SplashScreen onDone={handleSplashDone} userName={user?user.name.split(" ")[0]:null}/>;
 
-  var tabs=[
-    {id:"calc",label:"Calcolo",Icon:CalcIcon},
-    {id:"table",label:"ISO VG",Icon:TableIconSvg},
-    {id:"info",label:"Info",Icon:InfoIconSvg},
-    {id:"profile",label:"Profilo",Icon:UserIconSvg},
-  ];
+  var tabs=[{id:"calc",label:"Calcolo",Icon:CalcIcon},{id:"table",label:"ISO VG",Icon:TableIconSvg},{id:"info",label:"Info",Icon:InfoIconSvg},{id:"profile",label:"Profilo",Icon:UserIconSvg}];
 
   return(
     <div style={{maxWidth:430,margin:"0 auto",height:"100%",background:"linear-gradient(175deg,"+T.bg+" 0%,#0a0d1a 50%,"+T.bg+" 100%)",fontFamily:T.font,color:T.text,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
-      {/* Ambient */}
       <div style={{position:"absolute",top:-100,right:-60,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(61,128,234,0.06),transparent 70%)",pointerEvents:"none"}}/>
-
-      {/* Header */}
       <div style={{padding:"max(env(safe-area-inset-top,8px),8px) 18px 8px",display:"flex",alignItems:"center",gap:10,borderBottom:"1px solid "+T.border,flexShrink:0}}>
         <OilBlendLogo size={26}/>
-        <div style={{fontSize:15,fontWeight:800,letterSpacing:-0.3,background:"linear-gradient(90deg,#3d80ea,#3dc7ec)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>OilBlend</div>
+        <div style={{fontSize:15,fontWeight:800,letterSpacing:-.3,background:"linear-gradient(90deg,#3d80ea,#3dc7ec)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>OilBlend</div>
         {user&&<div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{user.name.split(" ")[0]}</div>}
       </div>
-
-      {/* Scrollable content — with bottom padding so nav doesn't cover it */}
       <div className="content-scroll">
         {tab==="calc"&&<CalculatorScreen key={fillCounter} lastFocused={lastFocused} setLastFocused={setLastFocused} result={result} setResult={setResult} fillValue={fillValue}/>}
         {tab==="table"&&<ISOTableScreen result={result} onTapGrade={handleISOTap}/>}
         {tab==="info"&&<InfoScreen/>}
         {tab==="profile"&&<ProfileScreen user={user} onLogout={handleLogout}/>}
       </div>
-
-      {/* FIXED Bottom Tab Bar — always visible */}
       <div className="bottom-nav">
         <div style={{display:"flex",paddingTop:8}}>
-          {tabs.map(function(t){
-            var active=tab===t.id;
-            return(
-              <button key={t.id} onClick={function(){setTab(t.id);}} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 0",fontFamily:T.font}}>
-                <div style={{padding:"4px 14px",borderRadius:16,background:active?T.accentDim:"transparent",transition:"background 0.25s"}}>
-                  <t.Icon active={active}/>
-                </div>
-                <span style={{fontSize:10,fontWeight:active?700:500,color:active?T.accent:T.textMuted,letterSpacing:0.3}}>{t.label}</span>
-              </button>
-            );
-          })}
+          {tabs.map(function(t){var active=tab===t.id;return(
+            <button key={t.id} onClick={function(){setTab(t.id);}} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 0",fontFamily:T.font}}>
+              <div style={{padding:"4px 14px",borderRadius:16,background:active?T.accentDim:"transparent",transition:"background 0.25s"}}><t.Icon active={active}/></div>
+              <span style={{fontSize:10,fontWeight:active?700:500,color:active?T.accent:T.textMuted,letterSpacing:.3}}>{t.label}</span>
+            </button>
+          );})}
         </div>
       </div>
     </div>
