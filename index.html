@@ -55,16 +55,16 @@ async function supabaseInsert(table,data){
     headers:{
       "Content-Type":"application/json",
       "apikey":SUPABASE_KEY,
-      "Authorization":"Bearer "+SUPABASE_KEY,
-      "Prefer":"return=representation"
+      "Prefer":"return=minimal"
     },
     body:JSON.stringify(data)
   });
   if(!res.ok){
     var err=await res.text();
-    throw new Error("Supabase error: "+res.status+" "+err);
+    console.error("Supabase error:",res.status,err);
+    throw new Error("DB error "+res.status+": "+err);
   }
-  return await res.json();
+  return true;
 }
 
 /* ══════ LOGO ══════ */
@@ -136,16 +136,20 @@ function OnboardingScreen({onComplete}){
       await supabaseInsert("oilblend_users",userData);
       // Save locally
       userData.registeredAt=new Date().toISOString();
+      userData.synced=true;
       sSet("oilblend_user",userData);
       setSending(false);
       onComplete(userData);
     }catch(err){
       console.error("Supabase insert failed:",err);
-      // Still allow access even if DB fails — save locally
+      setSubmitError("⚠️ DB: "+err.message+" — Accesso locale consentito.");
+      // Still allow access even if DB fails
       userData.registeredAt=new Date().toISOString();
+      userData.synced=false;
       sSet("oilblend_user",userData);
       setSending(false);
-      onComplete(userData);
+      // Wait a moment so user sees the error, then proceed
+      setTimeout(function(){onComplete(userData);},2500);
     }
   }
 
