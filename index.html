@@ -55,6 +55,7 @@ async function sbFetch(t,o){var r=await fetch(SB_URL+"/rest/v1/"+t+"?select=*&or
 async function sbUpdate(t,id,d){var r=await fetch(SB_URL+"/rest/v1/"+t+"?id=eq."+id,{method:"PATCH",headers:Object.assign({},HD,{"Prefer":"return=minimal"}),body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());}
 
 /* ══════ PASSWORD HASH (SHA-256) ══════ */
+/* Non più usata, lasciata qui solo se in futuro servirà di nuovo */
 async function hashPwd(p){var e=new TextEncoder();var d=await crypto.subtle.digest("SHA-256",e.encode(p));return Array.from(new Uint8Array(d)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");}
 
 /* ══════ VISIT LOG ══════ */
@@ -109,7 +110,7 @@ function AuthScreen({onAuth}){
   const[mode,setMode]=useState("login"); // login | register
   const[showSplash,setShowSplash]=useState(true);
   const[name,setName]=useState("");const[company,setCompany]=useState("");
-  const[email,setEmail]=useState("");const[phone,setPhone]=useState("");const[pwd,setPwd]=useState("");
+  const[email,setEmail]=useState("");const[phone,setPhone]=useState("");
   const[loading,setLoading]=useState(false);const[err,setErr]=useState(null);
 
   useEffect(function(){var t=setTimeout(function(){setShowSplash(false);},3200);return function(){clearTimeout(t);};},[]);
@@ -119,31 +120,28 @@ function AuthScreen({onAuth}){
   var is={width:"100%",boxSizing:"border-box",padding:"15px 16px",fontSize:16,fontWeight:500,fontFamily:T.font,background:"rgba(255,255,255,0.05)",border:"1.5px solid "+T.border,borderRadius:12,color:T.text,outline:"none"};
 
   async function handleLogin(){
-    if(!email.trim()||!pwd){setErr("Inserisci email e password");return;}
+    if(!email.trim()){setErr("Inserisci la tua email");return;}
     setLoading(true);setErr(null);
     try{
-      var h=await hashPwd(pwd);
-      var res=await fetch(SB_URL+"/rest/v1/oilblend_users?email=eq."+encodeURIComponent(email.trim())+"&password=eq."+h+"&select=*",{method:"GET",headers:HD});
+      var res=await fetch(SB_URL+"/rest/v1/oilblend_users?email=eq."+encodeURIComponent(email.trim())+"&select=*",{method:"GET",headers:HD});
       if(!res.ok)throw new Error("Errore server");
       var data=await res.json();
-      if(!data||data.length===0){setErr("Email o password errati");setLoading(false);return;}
+      if(!data||data.length===0){setErr("Email non trovata. Registrati prima.");setLoading(false);return;}
       var u=data[0];sSet("oilblend_user",u);onAuth(u);
     }catch(e){setErr(e.message||"Errore di connessione");}
     setLoading(false);
   }
 
   async function handleRegister(){
-    if(!name.trim()||!company.trim()||!email.trim()||!phone.trim()||!pwd){setErr("Compila tutti i campi");return;}
-    if(pwd.length<6){setErr("La password deve avere almeno 6 caratteri");return;}
+    if(!name.trim()||!company.trim()||!email.trim()||!phone.trim()){setErr("Compila tutti i campi");return;}
     if(!/\S+@\S+\.\S+/.test(email)){setErr("Email non valida");return;}
     setLoading(true);setErr(null);
     try{
-      var h=await hashPwd(pwd);
       // Check if email exists
       var chk=await fetch(SB_URL+"/rest/v1/oilblend_users?email=eq."+encodeURIComponent(email.trim())+"&select=id",{method:"GET",headers:HD});
       var existing=await chk.json();
       if(existing&&existing.length>0){setErr("Email già registrata. Effettua il login.");setLoading(false);return;}
-      await sbInsert("oilblend_users",{name:name.trim(),company:company.trim(),email:email.trim(),phone:phone.trim(),password:h});
+      await sbInsert("oilblend_users",{name:name.trim(),company:company.trim(),email:email.trim(),phone:phone.trim()});
       var u={name:name.trim(),company:company.trim(),email:email.trim(),phone:phone.trim()};
       sSet("oilblend_user",u);onAuth(u);
     }catch(e){setErr(e.message||"Errore di registrazione");}
@@ -155,7 +153,6 @@ function AuthScreen({onAuth}){
     {k:"company",l:"Azienda",v:company,s:setCompany,p:"Es. Petroli SpA",t:"text",i:"🏭",d:.06},
     {k:"email",l:"Email",v:email,s:setEmail,p:"mario@azienda.it",t:"email",i:"✉️",d:.12},
     {k:"phone",l:"Telefono",v:phone,s:setPhone,p:"+39 333 1234567",t:"tel",i:"📱",d:.18},
-    {k:"pwd",l:"Password",v:pwd,s:setPwd,p:"Minimo 6 caratteri",t:"password",i:"🔒",d:.24},
   ];
 
   return(
@@ -163,18 +160,14 @@ function AuthScreen({onAuth}){
       <div style={{textAlign:"center",padding:"max(env(safe-area-inset-top,20px),40px) 24px 16px",flexShrink:0}}>
         <div style={{animation:"dropFall 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards"}}><Logo size={Math.min(56,window.innerWidth*.14)}/></div>
         <div style={{marginTop:14,fontSize:Math.min(26,window.innerWidth*.065),fontWeight:900,letterSpacing:-.5,background:"linear-gradient(135deg,#3d80ea,#3dc7ec)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",animation:"fadeUp 0.6s ease-out 0.3s both"}}>{mode==="login"?"Accedi a OilBlend":"Crea il tuo Account"}</div>
-        <div style={{marginTop:6,fontSize:13,color:T.textDim,animation:"fadeUp 0.6s ease-out 0.5s both"}}>{mode==="login"?"Inserisci le tue credenziali":"Compila per registrarti"}</div>
+        <div style={{marginTop:6,fontSize:13,color:T.textDim,animation:"fadeUp 0.6s ease-out 0.5s both"}}>{mode==="login"?"Inserisci la tua email":"Compila per registrarti"}</div>
       </div>
       <div style={{padding:"0 24px 40px",flex:1}}>
         {mode==="login"?(
           <div>
             <div className="onboard-field" style={{animationDelay:".6s",marginBottom:16}}>
               <label style={{display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>✉️ Email</label>
-              <input type="email" value={email} placeholder="mario@azienda.it" onChange={function(e){setEmail(e.target.value);}} style={is}/>
-            </div>
-            <div className="onboard-field" style={{animationDelay:".7s",marginBottom:16}}>
-              <label style={{display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>🔒 Password</label>
-              <input type="password" value={pwd} placeholder="La tua password" onChange={function(e){setPwd(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleLogin();}} style={is}/>
+              <input type="email" value={email} placeholder="mario@azienda.it" onChange={function(e){setEmail(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")handleLogin();}} style={is}/>
             </div>
           </div>
         ):(
