@@ -55,7 +55,6 @@ async function sbFetch(t,o){var r=await fetch(SB_URL+"/rest/v1/"+t+"?select=*&or
 async function sbUpdate(t,id,d){var r=await fetch(SB_URL+"/rest/v1/"+t+"?id=eq."+id,{method:"PATCH",headers:Object.assign({},HD,{"Prefer":"return=minimal"}),body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());}
 
 /* ══════ PASSWORD HASH (SHA-256) ══════ */
-/* Non più usata, lasciata qui solo se in futuro servirà di nuovo */
 async function hashPwd(p){var e=new TextEncoder();var d=await crypto.subtle.digest("SHA-256",e.encode(p));return Array.from(new Uint8Array(d)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");}
 
 /* ══════ VISIT LOG ══════ */
@@ -244,4 +243,269 @@ function CalcScreen(p){
             <div style={{flex:1,padding:"12px",borderRadius:14,background:T.accentDim,border:"1px solid "+T.accentBorder,textAlign:"center"}}>
               <div style={{fontSize:9,color:T.accent,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Olio 1 {R.swapped?"(più viscoso)":""}</div>
               <div style={{fontFamily:T.mono,fontSize:26,fontWeight:700,color:T.accent,lineHeight:1}}>{R.oil1Pct.toFixed(1)}<span style={{fontSize:14}}>%</span></div>
-              {R.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.accent,marginTop:4,opacity:.8}}
+              {R.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.accent,marginTop:4,opacity:.8}}>{(R.liters*R.oil1Pct/100).toFixed(1)} L</div>}
+              <div style={{fontSize:11,color:T.textDim,marginTop:4}}>{R.swapped?R.v2:R.v1} mm²/s</div>
+            </div>
+            <div style={{flex:1,padding:"12px",borderRadius:14,background:T.orangeDim,border:"1px solid "+T.orangeBorder,textAlign:"center"}}>
+              <div style={{fontSize:9,color:T.orange,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Olio 2</div>
+              <div style={{fontFamily:T.mono,fontSize:26,fontWeight:700,color:T.orange,lineHeight:1}}>{R.oil2Pct.toFixed(1)}<span style={{fontSize:14}}>%</span></div>
+              {R.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.orange,marginTop:4,opacity:.8}}>{(R.liters*R.oil2Pct/100).toFixed(1)} L</div>}
+              <div style={{fontSize:11,color:T.textDim,marginTop:4}}>{R.swapped?R.v1:R.v2} mm²/s</div>
+            </div>
+          </div>
+          {R.isoMatch&&(<div style={{margin:"0 16px 12px",padding:"10px 12px",borderRadius:10,background:T.greenDim,border:"1px solid "+T.greenBorder,fontSize:12,color:T.green,fontWeight:600}}>{"✓ Target = ISO "+R.isoMatch.g+" ("+R.isoMatch.n+"–"+R.isoMatch.x+" mm²/s)"}</div>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   SCREEN 2 — ISO VG
+   ══════════════════════════════════════ */
+function ISOScreen(p){
+  var mg=(p.result&&p.result.isoMatch)?p.result.isoMatch.g:null;
+  return(
+    <div style={{padding:"16px 14px 24px"}}>
+      <h2 style={{fontSize:18,fontWeight:800,color:T.text,margin:"0 0 2px 4px"}}>Tabella ISO VG</h2>
+      <p style={{fontSize:12,color:T.textDim,margin:"0 0 8px 4px"}}>Viscosità cinematica a 40°C — tocca una riga per usarla</p>
+      <Notice type="blue">Tocca un grado per inserirne il valore mediano nell'ultimo campo selezionato.{mg&&<span><br/><strong style={{color:T.green}}>Verde</strong> = risultato attuale.</span>}</Notice>
+      <div style={{height:14}}></div>
+      <div style={{borderRadius:14,overflow:"hidden",border:"1px solid "+T.border}}>
+        <div style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"10px 12px",background:T.accentDim,borderBottom:"1px solid "+T.border,fontSize:10,fontWeight:700,color:T.accent,textTransform:"uppercase",letterSpacing:1}}><div>Grado</div><div style={{textAlign:"right"}}>Media</div><div style={{textAlign:"right"}}>Min</div><div style={{textAlign:"right"}}>Max</div></div>
+        {ISO_VG.map(function(g,i){var mt=mg===g.g;return(
+          <div key={g.g} onClick={function(){p.onTap(g.m);}} style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"11px 12px",cursor:"pointer",background:mt?T.greenDim:(i%2===0?"rgba(255,255,255,0.01)":"rgba(255,255,255,0.025)"),borderBottom:"1px solid "+T.border,borderLeft:mt?"3px solid "+T.green:"3px solid transparent",alignItems:"center"}}>
+            <div style={{fontWeight:700,fontSize:12,color:mt?T.green:T.text}}>{"ISO "+g.g}</div>
+            <div style={{textAlign:"right",fontFamily:T.mono,fontWeight:700,fontSize:13,color:mt?T.green:T.accent}}>{g.m}</div>
+            <div style={{textAlign:"right",fontFamily:T.mono,fontSize:12,color:T.textDim}}>{g.n}</div>
+            <div style={{textAlign:"right",fontFamily:T.mono,fontSize:12,color:T.textDim}}>{g.x}</div>
+          </div>
+        );})}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   SCREEN 3 — Info + Policies
+   ══════════════════════════════════════ */
+function InfoScreen(){
+  const[showPolicy,setShowPolicy]=useState(null);
+  var h3s={fontSize:15,fontWeight:700,color:T.text,margin:"22px 0 8px"};var ps={fontSize:13,color:T.textDim,lineHeight:1.7,margin:"0 0 8px"};
+  var policyBtn=function(label,id){return(<button onClick={function(){setShowPolicy(showPolicy===id?null:id);}} style={{width:"100%",padding:"14px 16px",borderRadius:12,border:"1px solid "+T.border,background:showPolicy===id?T.accentDim:"rgba(255,255,255,0.02)",color:showPolicy===id?T.accent:T.text,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:T.font,marginBottom:8,textAlign:"left",display:"flex",justifyContent:"space-between",alignItems:"center"}}><span>{label}</span><span style={{fontSize:18,color:T.textDim}}>{showPolicy===id?"−":"+"}</span></button>);};
+
+  return(
+    <div style={{padding:"20px 18px 40px"}}>
+      <h2 style={{fontSize:20,fontWeight:800,color:T.text,margin:"0 0 4px"}}>Informazioni</h2>
+      <p style={{fontSize:12,color:T.textDim,margin:"0 0 16px"}}>Metodo di calcolo e documenti legali</p>
+      <div style={{padding:"14px 16px",borderRadius:14,background:T.yellowDim,border:"1px solid "+T.yellowBorder,fontSize:13,color:T.yellow,lineHeight:1.6}}><strong>⚠️ Attenzione</strong><br/>Le viscosità devono essere alla <strong>stessa temperatura (40°C)</strong>. Valido solo per valori &gt; <strong>2 mm²/s</strong>.</div>
+      <h3 style={h3s}>Metodo ASTM D341 (Walther)</h3>
+      <p style={ps}>Standard internazionale per stimare la viscosità di miscele di oli lubrificanti, basato sulla relazione doppio-logaritmica tra viscosità e composizione.</p>
+      <h3 style={h3s}>Formula</h3>
+      <div style={{padding:"14px",borderRadius:14,background:"rgba(255,255,255,0.03)",border:"1px solid "+T.border,fontFamily:T.mono,fontSize:12,color:T.accent,lineHeight:2.2,overflowX:"auto"}}>
+        <div style={{color:T.textDim,fontSize:10}}>{"// Walther"}</div><div>{"W(ν) = log₁₀(log₁₀(ν + 0.8))"}</div>
+        <div style={{marginTop:8,color:T.textDim,fontSize:10}}>{"// % Olio 1"}</div><div>{"x = (W(ν_t) − W(ν₂)) / (W(ν₁) − W(ν₂))"}</div>
+        <div style={{marginTop:8}}>{"Olio1 = x×100%  ·  Olio2 = (1−x)×100%"}</div>
+      </div>
+      <h3 style={h3s}>Limiti</h3>
+      <p style={ps}>Funziona per oli minerali e sintetici con ν &gt; 2 mm²/s. Non applicabile a emulsioni o oli con additivi polimerici. Evitare differenze eccessive.</p>
+
+      {/* ── Legal Documents ── */}
+      <h3 style={Object.assign({},h3s,{marginTop:32})}>Documenti Legali</h3>
+
+      {policyBtn("📋 Privacy Policy","privacy")}
+      {showPolicy==="privacy"&&(<div style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,marginBottom:12,fontSize:12,color:T.textDim,lineHeight:1.8}}>
+        <strong style={{color:T.text,fontSize:14}}>Privacy Policy — OilBlend</strong><br/><br/>
+        <strong style={{color:T.text}}>Ultimo aggiornamento:</strong> Marzo 2026<br/><br/>
+        <strong style={{color:T.text}}>1. Titolare del Trattamento</strong><br/>
+        Nuova Bravol Srl, in collaborazione con Digital Reality.<br/><br/>
+        <strong style={{color:T.text}}>2. Dati Raccolti</strong><br/>
+        L'app raccoglie: nome, cognome, nome azienda, indirizzo email, numero di telefono, tipo di dispositivo e dimensione schermo. Questi dati vengono forniti volontariamente dall'utente in fase di registrazione.<br/><br/>
+        <strong style={{color:T.text}}>3. Finalità del Trattamento</strong><br/>
+        I dati sono utilizzati per: autenticazione e accesso all'app; personalizzazione dell'esperienza utente; statistiche anonime di utilizzo; comunicazioni relative al servizio.<br/><br/>
+        <strong style={{color:T.text}}>4. Base Giuridica</strong><br/>
+        Il trattamento è basato sul consenso dell'utente (art. 6.1.a GDPR) e sull'esecuzione del contratto di servizio (art. 6.1.b GDPR).<br/><br/>
+        <strong style={{color:T.text}}>5. Conservazione dei Dati</strong><br/>
+        I dati vengono conservati su server sicuri (Supabase, infrastruttura AWS) per tutta la durata dell'account. L'utente può richiedere la cancellazione in qualsiasi momento dalla sezione Profilo.<br/><br/>
+        <strong style={{color:T.text}}>6. Condivisione dei Dati</strong><br/>
+        I dati non vengono venduti né condivisi con terze parti per finalità di marketing. Possono essere condivisi con fornitori tecnici (hosting, database) esclusivamente per l'erogazione del servizio.<br/><br/>
+        <strong style={{color:T.text}}>7. Diritti dell'Utente</strong><br/>
+        Ai sensi del GDPR, l'utente ha diritto di: accesso, rettifica, cancellazione, portabilità e opposizione al trattamento dei propri dati. Per esercitare questi diritti, contattare: privacy@nuovabravol.it<br/><br/>
+        <strong style={{color:T.text}}>8. Sicurezza</strong><br/>
+        Le password sono protette con crittografia SHA-256. Le comunicazioni avvengono tramite protocollo HTTPS/TLS.
+      </div>)}
+
+      {policyBtn("🍪 Cookie Policy","cookies")}
+      {showPolicy==="cookies"&&(<div style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,marginBottom:12,fontSize:12,color:T.textDim,lineHeight:1.8}}>
+        <strong style={{color:T.text,fontSize:14}}>Cookie Policy — OilBlend</strong><br/><br/>
+        <strong style={{color:T.text}}>1. Cosa sono i cookie</strong><br/>
+        I cookie sono piccoli file di testo memorizzati sul dispositivo dell'utente. OilBlend utilizza tecnologie equivalenti (localStorage) per il funzionamento dell'app.<br/><br/>
+        <strong style={{color:T.text}}>2. Cookie Tecnici (necessari)</strong><br/>
+        OilBlend utilizza esclusivamente localStorage per memorizzare: dati di sessione dell'utente autenticato; preferenze dell'app. Questi dati sono strettamente necessari al funzionamento e non richiedono consenso specifico.<br/><br/>
+        <strong style={{color:T.text}}>3. Cookie di Profilazione</strong><br/>
+        OilBlend NON utilizza cookie di profilazione, cookie pubblicitari o tracker di terze parti.<br/><br/>
+        <strong style={{color:T.text}}>4. Cookie Analitici</strong><br/>
+        L'app registra accessi anonimi (dispositivo, dimensione schermo) a fini statistici interni. Non vengono utilizzati servizi di analisi di terze parti come Google Analytics.<br/><br/>
+        <strong style={{color:T.text}}>5. Gestione</strong><br/>
+        L'utente può cancellare i dati locali in qualsiasi momento tramite "Esci e Cancella Dati" nella sezione Profilo dell'app.
+      </div>)}
+
+      {policyBtn("📜 Termini di Servizio","terms")}
+      {showPolicy==="terms"&&(<div style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,marginBottom:12,fontSize:12,color:T.textDim,lineHeight:1.8}}>
+        <strong style={{color:T.text,fontSize:14}}>Termini di Servizio — OilBlend</strong><br/><br/>
+        <strong style={{color:T.text}}>1. Descrizione del Servizio</strong><br/>
+        OilBlend è un'applicazione di calcolo tecnico che consente di stimare le proporzioni di miscelazione di oli lubrificanti per ottenere una viscosità target, secondo il metodo ASTM D341 (Walther).<br/><br/>
+        <strong style={{color:T.text}}>2. Uso Consentito</strong><br/>
+        L'app è destinata a professionisti del settore lubrificanti e oli industriali. I risultati sono stime basate su modelli matematici e non sostituiscono analisi di laboratorio.<br/><br/>
+        <strong style={{color:T.text}}>3. Limitazione di Responsabilità</strong><br/>
+        I calcoli forniti sono puramente indicativi. Nuova Bravol Srl e Digital Reality non sono responsabili per danni diretti o indiretti derivanti dall'uso dei risultati dell'app, incluse miscele errate, danni a macchinari o perdite economiche.<br/><br/>
+        <strong style={{color:T.text}}>4. Account</strong><br/>
+        L'utente è responsabile della riservatezza delle proprie credenziali. È vietata la condivisione di account o l'uso fraudolento del servizio.<br/><br/>
+        <strong style={{color:T.text}}>5. Proprietà Intellettuale</strong><br/>
+        L'app, il suo design, il logo e il codice sono proprietà di Nuova Bravol Srl e Digital Reality. È vietata la riproduzione non autorizzata.<br/><br/>
+        <strong style={{color:T.text}}>6. Abbonamento e Pagamenti</strong><br/>
+        L'accesso all'app richiede l'acquisto tramite Apple App Store. I pagamenti sono gestiti da Apple Inc. secondo i propri termini. Non sono previsti rimborsi al di fuori delle policy Apple.<br/><br/>
+        <strong style={{color:T.text}}>7. Modifiche</strong><br/>
+        I presenti termini possono essere aggiornati. L'uso continuato dell'app dopo modifiche costituisce accettazione dei nuovi termini.<br/><br/>
+        <strong style={{color:T.text}}>8. Legge Applicabile</strong><br/>
+        I presenti termini sono regolati dalla legge italiana. Foro competente: Tribunale di Milano.
+      </div>)}
+
+      {/* Version */}
+      <div style={{marginTop:28,padding:"14px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,textAlign:"center"}}>
+        <Logo size={28} style={{margin:"0 auto 8px",display:"block"}}/><div style={{fontSize:16,fontWeight:800,color:T.text}}>OilBlend</div><div style={{fontSize:11,color:T.textDim,marginTop:4}}>Versione 1.0.0</div><div style={{fontSize:10,color:T.textMuted,marginTop:2}}>ASTM D341 · Walther</div>
+        <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid "+T.border,fontSize:11,color:T.textDim,lineHeight:1.5}}>Designed by <strong style={{color:T.text}}>Digital Reality</strong> & <strong style={{color:T.text}}>Nuova Bravol Srl</strong></div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   SCREEN 4 — Profile + Admin
+   ══════════════════════════════════════ */
+function ProfileScreen(p){
+  var u=p.user;
+  const[adminOpen,setAdminOpen]=useState(false);const[aPwd,setAPwd]=useState("");const[aPwdErr,setAPwdErr]=useState(false);
+  const[visits,setVisits]=useState([]);const[loading,setLoading]=useState(false);const[fetchErr,setFetchErr]=useState(null);const[search,setSearch]=useState("");
+  const[profEdit,setProfEdit]=useState(false);
+  const[pN,setPN]=useState(u.name||"");const[pC,setPC]=useState(u.company||"");const[pE,setPE]=useState(u.email||"");const[pP,setPP]=useState(u.phone||"");
+  const[pSaving,setPSaving]=useState(false);const[pMsg,setPMsg]=useState(null);
+
+  function adminLogin(){if(aPwd===ADMIN_PW){setAdminOpen(true);setAPwdErr(false);loadVisits();}else setAPwdErr(true);}
+  async function loadVisits(){setLoading(true);setFetchErr(null);try{setVisits(await sbFetch("oilblend_visits","visited_at.desc"));}catch(e){setFetchErr(e.message);}setLoading(false);}
+
+  function openProfEdit(){setProfEdit(true);setPN(u.name||"");setPC(u.company||"");setPE(u.email||"");setPP(u.phone||"");setPMsg(null);}
+  async function saveProfEdit(){
+    if(!pN.trim()||!pE.trim()){setPMsg({t:"e",m:"Nome e email obbligatori"});return;}
+    setPSaving(true);setPMsg(null);
+    var upd={name:pN.trim(),company:pC.trim(),email:pE.trim(),phone:pP.trim()};
+    var stored=sGet("oilblend_user")||{};Object.assign(stored,upd);sSet("oilblend_user",stored);Object.assign(u,upd);
+    try{await fetch(SB_URL+"/rest/v1/oilblend_users?email=eq."+encodeURIComponent(u.email),{method:"PATCH",headers:Object.assign({},HD,{"Prefer":"return=minimal"}),body:JSON.stringify(upd)});}catch(e){}
+    setPMsg({t:"ok",m:"Profilo aggiornato!"});setPSaving(false);setTimeout(function(){setProfEdit(false);setPMsg(null);},1200);
+  }
+
+  var fv=visits;if(search.trim()){var q=search.toLowerCase();fv=visits.filter(function(v){return(v.user_name||"").toLowerCase().indexOf(q)>=0||(v.user_company||"").toLowerCase().indexOf(q)>=0||(v.user_email||"").toLowerCase().indexOf(q)>=0||(v.device||"").toLowerCase().indexOf(q)>=0;});}
+
+  function F(l,v){return(<div style={{padding:"14px 16px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,marginBottom:10}}><div style={{fontSize:10,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{l}</div><div style={{fontSize:15,fontWeight:600,color:T.text}}>{v}</div></div>);}
+  var ei={width:"100%",boxSizing:"border-box",padding:"12px 14px",fontSize:15,fontWeight:500,fontFamily:T.font,background:"rgba(255,255,255,0.05)",border:"1.5px solid "+T.accentBorder,borderRadius:10,color:T.text,outline:"none",marginTop:6};
+  var li={width:"100%",boxSizing:"border-box",padding:"14px 16px",fontSize:16,fontWeight:500,fontFamily:T.font,background:"rgba(255,255,255,0.05)",border:"1.5px solid "+(aPwdErr?T.red+"60":T.border),borderRadius:12,color:T.text,outline:"none"};
+  var today=new Date().toDateString();var vToday=visits.filter(function(v){return v.visited_at&&new Date(v.visited_at).toDateString()===today;}).length;
+
+  return(
+    <div style={{padding:"20px 18px 40px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <h2 style={{fontSize:20,fontWeight:800,color:T.text,margin:0}}>Profilo</h2>
+        <button onClick={openProfEdit} style={{padding:"7px 14px",borderRadius:10,border:"1px solid "+T.accentBorder,background:T.accentDim,color:T.accent,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>✏️ Modifica</button>
+      </div>
+      {F("Nome",u.name)}{F("Azienda",u.company)}{F("Email",u.email)}{F("Telefono",u.phone)}
+
+      {/* Profile Edit Modal */}
+      {profEdit&&(<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={function(){setProfEdit(false);}}><div style={{width:"100%",maxWidth:380,background:"#1a1e36",borderRadius:20,border:"1px solid "+T.accentBorder,padding:"24px 20px",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}} onClick={function(e){e.stopPropagation();}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}><h3 style={{fontSize:18,fontWeight:800,color:T.text,margin:0}}>Modifica Profilo</h3><button onClick={function(){setProfEdit(false);}} style={{background:"none",border:"none",color:T.textDim,fontSize:22,cursor:"pointer"}}>✕</button></div>
+        {[{l:"Nome",v:pN,s:setPN},{l:"Azienda",v:pC,s:setPC},{l:"Email",v:pE,s:setPE},{l:"Telefono",v:pP,s:setPP}].map(function(f){return(<div key={f.l} style={{marginBottom:12}}><label style={{fontSize:11,fontWeight:700,color:T.textDim,textTransform:"uppercase",letterSpacing:1}}>{f.l}</label><input value={f.v} onChange={function(e){f.s(e.target.value);}} style={ei}/></div>);})}
+        {pMsg&&<div style={{padding:"10px 12px",borderRadius:8,background:pMsg.t==="ok"?T.greenDim:T.redDim,border:"1px solid "+(pMsg.t==="ok"?T.greenBorder:T.redBorder),fontSize:12,color:pMsg.t==="ok"?T.green:T.red,marginBottom:12}}>{pMsg.m}</div>}
+        <button onClick={saveProfEdit} disabled={pSaving} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+T.blue+","+T.cyan+")",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer",fontFamily:T.font,textTransform:"uppercase",opacity:pSaving?.6:1}}>{pSaving?"...":"SALVA PROFILO"}</button>
+      </div></div>)}
+
+      <button onClick={p.onLogout} style={{marginTop:8,width:"100%",padding:"14px",borderRadius:12,border:"1.5px solid "+T.redBorder,background:T.redDim,color:T.red,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>Esci e Cancella Dati</button>
+
+      {/* ── Admin ── */}
+      <div style={{marginTop:32,paddingTop:24,borderTop:"1px solid "+T.border}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={adminOpen?T.accent:T.textDim} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span style={{fontSize:16,fontWeight:800,color:T.text}}>Area Admin</span>
+        </div>
+        {!adminOpen?(<div>
+          <input type="password" value={aPwd} placeholder="Password admin" onChange={function(e){setAPwd(e.target.value);setAPwdErr(false);}} onKeyDown={function(e){if(e.key==="Enter")adminLogin();}} style={li}/>
+          {aPwdErr&&<div style={{fontSize:12,color:T.red,marginTop:6,paddingLeft:4}}>Password errata</div>}
+          <button onClick={adminLogin} style={{marginTop:12,width:"100%",padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#EF5350,#FF8A65)",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer",fontFamily:T.font,letterSpacing:.5,textTransform:"uppercase"}}>ACCEDI ADMIN</button>
+        </div>):(<div>
+          {/* Stats */}
+          <div style={{display:"flex",gap:8,marginBottom:14}}>
+            <div style={{flex:1,padding:"10px",borderRadius:12,background:T.accentDim,border:"1px solid "+T.accentBorder,textAlign:"center"}}><div style={{fontFamily:T.mono,fontSize:22,fontWeight:700,color:T.accent}}>{visits.length}</div><div style={{fontSize:9,color:T.textDim,fontWeight:700,textTransform:"uppercase"}}>Visite totali</div></div>
+            <div style={{flex:1,padding:"10px",borderRadius:12,background:T.greenDim,border:"1px solid "+T.greenBorder,textAlign:"center"}}><div style={{fontFamily:T.mono,fontSize:22,fontWeight:700,color:T.green}}>{vToday}</div><div style={{fontSize:9,color:T.textDim,fontWeight:700,textTransform:"uppercase"}}>Oggi</div></div>
+            <div style={{flex:"0 0 auto"}}><button onClick={loadVisits} style={{height:"100%",padding:"10px 14px",borderRadius:12,border:"1px solid "+T.accentBorder,background:T.accentDim,color:T.accent,fontSize:18,fontWeight:700,cursor:"pointer",fontFamily:T.font}}>{loading?"...":"↻"}</button></div>
+          </div>
+          {/* Search */}
+          <div style={{position:"relative",marginBottom:14}}><input type="text" value={search} placeholder="Cerca nome, azienda, device..." onChange={function(e){setSearch(e.target.value);}} style={{width:"100%",boxSizing:"border-box",padding:"12px 16px 12px 40px",fontSize:14,fontWeight:500,fontFamily:T.font,background:T.bgInput,border:"1.5px solid "+T.border,borderRadius:12,color:T.text,outline:"none"}}/><span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16,pointerEvents:"none"}}>🔍</span></div>
+          {fetchErr&&<div style={{padding:"12px 14px",borderRadius:10,background:T.redDim,border:"1px solid "+T.redBorder,fontSize:12,color:T.red,marginBottom:12}}>{fetchErr}</div>}
+          {loading&&<div style={{textAlign:"center",padding:30,color:T.textDim,fontSize:14}}>Caricamento...</div>}
+          {!loading&&fv.length===0&&<div style={{textAlign:"center",padding:30,color:T.textDim,fontSize:14}}>{search?"Nessun risultato":"Nessun accesso"}</div>}
+          {!loading&&fv.map(function(v,i){
+            var d=v.visited_at?new Date(v.visited_at):null;var ds=d?d.toLocaleDateString("it-IT",{day:"2-digit",month:"short",year:"numeric"}):"—";var ts=d?d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",second:"2-digit"}):"";var iT=d&&d.toDateString()===today;
+            var di=v.device==="iPhone"?"📱":v.device==="Android"?"🤖":v.device==="Mobile"?"📱":"💻";
+            return(<div key={v.id||i} style={{padding:"12px 14px",borderRadius:12,background:iT?"rgba(102,187,106,0.04)":"rgba(255,255,255,0.015)",border:"1px solid "+(iT?T.greenBorder:T.border),marginBottom:6}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:14}}>{di}</span><span style={{fontSize:14,fontWeight:700,color:T.text}}>{v.user_name||"?"}</span></div><div style={{fontSize:10,color:iT?T.green:T.textMuted,fontFamily:T.mono,fontWeight:600}}>{iT?"OGGI "+ts:ds+" "+ts}</div></div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:11,color:T.textDim}}>{v.user_company&&v.user_company!=="—"&&<span style={{color:T.accent}}>🏭 {v.user_company}</span>}<span>{v.device} · {v.screen_size||"?"}</span>{v.user_email&&v.user_email!=="—"&&<span>✉️ {v.user_email}</span>}</div>
+            </div>);
+          })}
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   MAIN APP
+   ══════════════════════════════════════ */
+function App(){
+  const[phase,setPhase]=useState("loading");const[user,setUser]=useState(null);
+  const[tab,setTab]=useState("calc");const[lastFocused,setLastFocused]=useState("vT");
+  const[result,setResult]=useState(null);const[fillValue,setFillValue]=useState(null);const[fillCounter,setFillCounter]=useState(0);
+
+  useEffect(function(){var s=sGet("oilblend_user");if(s&&s.name&&s.email){setUser(s);setPhase("splash");}else{setPhase("auth");}},[]);
+
+  function handleAuth(u){setUser(u);sSet("oilblend_user",u);setPhase("app");logVisit(u);}
+  function handleSplashDone(){setPhase("app");logVisit(user);}
+  function handleLogout(){sSet("oilblend_user",null);try{localStorage.removeItem("oilblend_user");}catch(e){}setUser(null);setResult(null);setPhase("auth");}
+  function handleISOTap(m){setFillValue(m);setFillCounter(function(c){return c+1;});setTab("calc");}
+
+  if(phase==="loading")return null;
+  if(phase==="auth")return <AuthScreen onAuth={handleAuth}/>;
+  if(phase==="splash")return <Splash onDone={handleSplashDone}/>;
+
+  var tabs=[{id:"calc",label:"Calcolo",Icon:CalcIcon},{id:"table",label:"ISO VG",Icon:TblIcon},{id:"info",label:"Info",Icon:InfoIcon},{id:"profile",label:"Profilo",Icon:UserIcon}];
+
+  return(
+    <div style={{maxWidth:430,margin:"0 auto",height:"100%",background:"linear-gradient(175deg,"+T.bg+" 0%,#0a0d1a 50%,"+T.bg+" 100%)",fontFamily:T.font,color:T.text,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
+      <div style={{position:"absolute",top:-100,right:-60,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(61,128,234,0.06),transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{padding:"max(env(safe-area-inset-top,8px),8px) 18px 8px",display:"flex",alignItems:"center",gap:10,borderBottom:"1px solid "+T.border,flexShrink:0}}>
+        <Logo size={26}/><div style={{fontSize:15,fontWeight:800,letterSpacing:-.3,background:"linear-gradient(90deg,#3d80ea,#3dc7ec)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>OilBlend</div>
+        {user&&<div style={{marginLeft:"auto",fontSize:11,color:T.textDim}}>{user.name.split(" ")[0]}</div>}
+      </div>
+      <div className="content-scroll">
+        {tab==="calc"&&<CalcScreen key={fillCounter} lastFocused={lastFocused} setLastFocused={setLastFocused} result={result} setResult={setResult} fillValue={fillValue}/>}
+        {tab==="table"&&<ISOScreen result={result} onTap={handleISOTap}/>}
+        {tab==="info"&&<InfoScreen/>}
+        {tab==="profile"&&<ProfileScreen user={user} onLogout={handleLogout}/>}
+      </div>
+      <div className="bottom-nav"><div style={{display:"flex",paddingTop:8}}>
+        {tabs.map(function(t){var a=tab===t.id;return(<button key={t.id} onClick={function(){setTab(t.id);}} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 0",fontFamily:T.font}}><div style={{padding:"4px 14px",borderRadius:16,background:a?T.accentDim:"transparent",transition:"background 0.25s"}}><t.Icon active={a}/></div><span style={{fontSize:10,fontWeight:a?700:500,color:a?T.accent:T.textMuted,letterSpacing:.3}}>{t.label}</span></button>);})}
+      </div></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
