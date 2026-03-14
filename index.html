@@ -1,9 +1,4 @@
 <!DOCTYPE html>
-<!-- i18n Steps 3–5: data-i18n markers (3), i18n engine + toggle (4), every hardcoded
-     Italian string in JS replaced with t('key') calls (5).  React re-renders on language
-     change via oilblend-langchange event + langKey state.  calculateBlend now throws
-     translation keys; local var t renamed to tmp to avoid shadowing global t().
-     tabs.map iterator renamed t→tb for the same reason.  No calculation logic changed. -->
 <html lang="it">
 <head>
 <meta charset="UTF-8"/>
@@ -11,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#0F1120"/>
-<title data-i18n="pageTitle">OilBlend — Calcolatore Viscosità</title>
+<title>OilBlend — Calcolatore Viscosità</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
 <style>
@@ -40,94 +35,13 @@
   .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(15,17,32,.97);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);padding-bottom:env(safe-area-inset-bottom,8px);max-width:430px;margin:0 auto}
   .content-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:90px}
   @media(max-height:700px){.content-scroll{padding-bottom:80px}}
-
-  /* ── Language toggle (Step 4) ── */
-  #lang-toggle{position:fixed;top:max(env(safe-area-inset-top,10px),10px);right:20px;z-index:9999;display:flex;align-items:center;gap:4px;background:rgba(22,26,48,0.92);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:4px 10px;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-family:inherit}
-  .lang-btn{background:none;border:none;cursor:pointer;font-size:13px;font-weight:500;color:#7B8294;padding:2px 4px;border-radius:4px;transition:color 0.15s}
-  .lang-btn.active{color:#E8EAF0;font-weight:700}
-  .lang-btn:hover:not(.active){color:#aab0c0}
-  .lang-divider{color:rgba(255,255,255,0.12);font-size:12px}
 </style>
 </head>
 <body>
-<!-- Language toggle (Step 4) — first child of body -->
-<div id="lang-toggle" aria-label="Language selector">
-  <button id="lang-btn-it" class="lang-btn active" onclick="setLanguage('it')" aria-pressed="true">IT</button>
-  <span class="lang-divider">|</span>
-  <button id="lang-btn-en" class="lang-btn" onclick="setLanguage('en')" aria-pressed="false">EN</button>
-</div>
 <div id="root"></div>
-<script src="translations.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-
-<!-- ══════ i18n ENGINE (Step 4) — placed BEFORE text/babel so t() is available at render ══════ -->
-<script>
-var currentLang = (function(){
-  try {
-    var saved = localStorage.getItem('oilblend-lang');
-    if (saved && typeof i18n !== 'undefined' && i18n[saved]) return saved;
-  } catch(e){}
-  return navigator.language.toLowerCase().startsWith('en') ? 'en' : 'it';
-})();
-
-function t(key) {
-  var lang = i18n[currentLang];
-  return (lang && lang[key] !== undefined) ? lang[key] : (i18n.it && i18n.it[key] !== undefined ? i18n.it[key] : key);
-}
-
-function applyTranslations(lang) {
-  var tr = i18n[lang];
-  if (!tr) return;
-  document.querySelectorAll('[data-i18n]').forEach(function(el) {
-    var key = el.getAttribute('data-i18n');
-    if (tr[key] !== undefined) el.textContent = tr[key];
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
-    var key = el.getAttribute('data-i18n-placeholder');
-    if (tr[key] !== undefined) el.placeholder = tr[key];
-  });
-  document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
-    var key = el.getAttribute('data-i18n-title');
-    if (tr[key] !== undefined) el.title = tr[key];
-  });
-  document.documentElement.setAttribute('lang', lang);
-}
-
-function updateToggleUI(lang) {
-  document.querySelectorAll('.lang-btn').forEach(function(btn) {
-    btn.classList.remove('active');
-    btn.setAttribute('aria-pressed', 'false');
-  });
-  var activeBtn = document.getElementById('lang-btn-' + lang);
-  if (activeBtn) {
-    activeBtn.classList.add('active');
-    activeBtn.setAttribute('aria-pressed', 'true');
-  }
-}
-
-function setLanguage(lang) {
-  currentLang = lang;
-  try { localStorage.setItem('oilblend-lang', lang); } catch(e) {}
-  applyTranslations(lang);
-  updateToggleUI(lang);
-  document.dispatchEvent(new CustomEvent('oilblend-langchange', { detail: lang }));
-}
-
-function getDefaultLang() {
-  try {
-    var saved = localStorage.getItem('oilblend-lang');
-    if (saved && i18n[saved]) return saved;
-  } catch(e) {}
-  return navigator.language.toLowerCase().startsWith('en') ? 'en' : 'it';
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  setLanguage(getDefaultLang());
-});
-</script>
-
 <script type="text/babel">
 
 const{useState,useEffect}=React;
@@ -140,8 +54,7 @@ var _s={};function sGet(k){try{var v=localStorage.getItem(k);if(v)return JSON.pa
 function Logo({size,style}){return(<svg width={size} height={size*1.253} viewBox="0 0 503.63 631.19" style={style} xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g36" x1="86.45" y1="165.36" x2="473.35" y2="552.26" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#3d80ea"/><stop offset=".45" stopColor="#5c94ed"/><stop offset=".71" stopColor="#94b9f3"/><stop offset="1" stopColor="#fff"/></linearGradient><linearGradient id="g20" x1="141.79" y1="0" x2="141.79" y2="631.19" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#3dc7ec"/><stop offset=".42" stopColor="#66d3f0"/><stop offset=".75" stopColor="#b0e8f7"/><stop offset="1" stopColor="#fff"/></linearGradient><linearGradient id="g50" x1="253.92" y1="618.49" x2="253.92" y2="265.98" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#17192d"/><stop offset=".59" stopColor="#264279"/><stop offset="1" stopColor="#3d80ea"/></linearGradient></defs><g><path d="M480.21,354.26L251.81,0s70.06,148.29,2.1,265.98c-67.95,117.7-100.39,173.89-100.39,173.89,0,0-47.87,73.38,20.13,143.39,0,0,33.26,35.57,78.16,36.12,20.35,7.63,42.38,11.81,65.4,11.81,102.96,0,186.42-83.46,186.42-186.42,0-32.85-8.51-63.71-23.42-90.51Z" fill="url(#g36)"/><path d="M253.92,265.98l-101.26,175.38c-44.58,77.21,9.16,175.08,98.3,177.09.98.02,1.97.03,2.96.03s1.98-.01,2.96-.03c89.13-2.01,142.87-99.88,98.3-177.09l-101.26-175.38Z" fill="#fff"/><path d="M173.65,583.27c-68-70.01-20.13-143.39-20.13-143.39,0,0,32.44-56.19,100.39-173.89C321.87,148.29,251.81,0,251.81,0L23.42,354.26C8.51,381.07,0,411.92,0,444.77c0,102.96,83.46,186.42,186.42,186.42,23.01,0,45.05-4.18,65.4-11.81-44.9-.55-78.16-36.12-78.16-36.12Z" fill="url(#g20)"/><path d="M253.92,265.98l-101.26,175.38c-44.58,77.21,9.16,175.08,98.3,177.09.98.02,1.97.03,2.96.03s1.98-.01,2.96-.03c89.13-2.01,142.87-99.88,98.3-177.09l-101.26-175.38Z" fill="#3d80ea" opacity=".3"/><path d="M253.92,265.98l-101.26,175.38c-44.58,77.21,9.16,175.08,98.3,177.09.98.02,1.97.03,2.96.03s1.98-.01,2.96-.03c89.13-2.01,142.87-99.88,98.3-177.09l-101.26-175.38Z" fill="url(#g50)"/></g></svg>);}
 
 /* ══════ CALC ══════ */
-/* Step 5: errors now throw translation keys; local swap var renamed tmp to avoid shadowing t() */
-function calculateBlend(v1,v2,vT){var sw=false;if(v1<v2){var tmp=v1;v1=v2;v2=tmp;sw=true;}if(v1<=2||v2<=2||vT<=2)throw new Error("errorMinVisc");if(vT>=v1||vT<=v2)throw new Error("errorTargetRange");var W=function(v){return Math.log10(Math.log10(v+0.8));};var x=(W(vT)-W(v2))/(W(v1)-W(v2));return{oil1Pct:x*100,oil2Pct:(1-x)*100,swapped:sw};}
+function calculateBlend(v1,v2,vT){var sw=false;if(v1<v2){var t=v1;v1=v2;v2=t;sw=true;}if(v1<=2||v2<=2||vT<=2)throw new Error("Viscosità deve essere > 2 mm²/s");if(vT>=v1||vT<=v2)throw new Error("Target fuori range: deve essere tra i due oli");var W=function(v){return Math.log10(Math.log10(v+0.8));};var x=(W(vT)-W(v2))/(W(v1)-W(v2));return{oil1Pct:x*100,oil2Pct:(1-x)*100,swapped:sw};}
 
 /* ══════ ISO VG ══════ */
 var ISO_VG=[{g:"VG 2",m:2.2,n:1.98,x:2.42},{g:"VG 3",m:3.2,n:2.88,x:3.52},{g:"VG 5",m:4.6,n:4.14,x:5.06},{g:"VG 7",m:6.8,n:6.12,x:7.48},{g:"VG 10",m:10,n:9,x:11},{g:"VG 15",m:15,n:13.5,x:16.5},{g:"VG 22",m:22,n:19.8,x:24.2},{g:"VG 32",m:32,n:28.8,x:35.2},{g:"VG 46",m:46,n:41.4,x:50.6},{g:"VG 68",m:68,n:61.2,x:74.8},{g:"VG 100",m:100,n:90,x:110},{g:"VG 150",m:150,n:135,x:165},{g:"VG 220",m:220,n:198,x:242},{g:"VG 320",m:320,n:288,x:352},{g:"VG 460",m:460,n:414,x:506},{g:"VG 680",m:680,n:612,x:748},{g:"VG 1000",m:1000,n:900,x:1100},{g:"VG 1500",m:1500,n:1350,x:1650},{g:"VG 2200",m:2200,n:1980,x:2420},{g:"VG 3200",m:3200,n:2880,x:3520}];
@@ -159,7 +72,7 @@ var UserIcon=function(p){return(<svg width="22" height="22" viewBox="0 0 24 24" 
 
 /* ══════ SHARED UI ══════ */
 var inpBase={width:"100%",boxSizing:"border-box",padding:"14px 60px 14px 16px",fontSize:16,fontWeight:600,fontFamily:T.font,background:T.bgInput,border:"1.5px solid "+T.border,borderRadius:12,color:T.text,outline:"none",transition:"border-color 0.2s"};
-function Inp(p){var tp=p.type||"number";return(<div style={{marginBottom:14}}><label data-i18n={p.labelKey} style={{display:"block",fontSize:11,fontWeight:700,color:p.color||T.textDim,textTransform:"uppercase",letterSpacing:1.2,marginBottom:6}}>{p.label}</label><div style={{position:"relative"}}><input type={tp} inputMode={tp==="number"?"decimal":"text"} data-i18n-placeholder={p.placeholderKey} placeholder={p.placeholder} value={p.value} onChange={function(e){p.onChange(e.target.value);}} onFocus={p.onFocusCb} style={Object.assign({},inpBase,{borderColor:p.value?(p.color?p.color+"40":T.accentBorder):T.border,paddingRight:p.unit?60:16})}/>{p.unit&&<span style={{position:"absolute",right:16,top:"50%",transform:"translateY(-50%)",fontSize:12,color:T.textDim,fontWeight:500,pointerEvents:"none"}}>{p.unit}</span>}</div></div>);}
+function Inp(p){var tp=p.type||"number";return(<div style={{marginBottom:14}}><label style={{display:"block",fontSize:11,fontWeight:700,color:p.color||T.textDim,textTransform:"uppercase",letterSpacing:1.2,marginBottom:6}}>{p.label}</label><div style={{position:"relative"}}><input type={tp} inputMode={tp==="number"?"decimal":"text"} placeholder={p.placeholder} value={p.value} onChange={function(e){p.onChange(e.target.value);}} onFocus={p.onFocusCb} style={Object.assign({},inpBase,{borderColor:p.value?(p.color?p.color+"40":T.accentBorder):T.border,paddingRight:p.unit?60:16})}/>{p.unit&&<span style={{position:"absolute",right:16,top:"50%",transform:"translateY(-50%)",fontSize:12,color:T.textDim,fontWeight:500,pointerEvents:"none"}}>{p.unit}</span>}</div></div>);}
 function Notice(p){var s={yellow:{bg:T.yellowDim,bd:T.yellowBorder,c:T.yellow,i:"⚠️"},red:{bg:T.redDim,bd:T.redBorder,c:T.red,i:"✕"},green:{bg:T.greenDim,bd:T.greenBorder,c:T.green,i:"✓"},blue:{bg:T.accentDim,bd:T.accentBorder,c:T.accent,i:"ℹ"}}[p.type];return(<div style={{padding:"12px 14px",borderRadius:10,background:s.bg,border:"1px solid "+s.bd,fontSize:13,color:s.c,lineHeight:1.6,marginTop:12,display:"flex",gap:8,alignItems:"flex-start"}}><span style={{flexShrink:0}}>{s.i}</span><span>{p.children}</span></div>);}
 function Bar(p){const[w,setW]=useState(0);useEffect(function(){setW(0);setTimeout(function(){setW(p.a);},60);},[p.a]);return(<div style={{display:"flex",borderRadius:10,overflow:"hidden",height:36,background:"rgba(0,0,0,0.3)",border:"1px solid "+T.border,marginTop:14}}><div style={{width:w+"%",transition:"width 0.8s cubic-bezier(.4,0,.2,1)",background:"linear-gradient(90deg,"+T.blue+","+T.cyan+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff",minWidth:w>10?52:0,overflow:"hidden"}}>{w>10&&p.a.toFixed(1)+"%"}</div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:T.orange,background:T.orangeDim}}>{p.b.toFixed(1)+"%"}</div></div>);}
 
@@ -169,63 +82,63 @@ function Bar(p){const[w,setW]=useState(0);useEffect(function(){setW(0);setTimeou
 function Splash({onDone}){
   const[f,setF]=useState(false);
   useEffect(function(){var t1=setTimeout(function(){setF(true);},2800);var t2=setTimeout(onDone,3400);return function(){clearTimeout(t1);clearTimeout(t2);};},[]);
-  return(<div style={{position:"fixed",inset:0,zIndex:100,background:"radial-gradient(ellipse at 50% 40%,#1a2340 0%,#0F1120 70%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",opacity:f?0:1,transition:"opacity 0.6s"}}><div className="splash-logo splash-logo-glow"><Logo size={Math.min(120,window.innerWidth*.28)}/></div><div className="splash-title" style={{marginTop:28,fontSize:Math.min(36,window.innerWidth*.09),fontWeight:900,letterSpacing:-1,background:"linear-gradient(135deg,#3d80ea,#3dc7ec,#fff)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}} data-i18n="splashLogo">{t('splashLogo')}</div><div className="splash-subtitle" style={{marginTop:8,fontSize:13,color:T.textDim,textAlign:"center",maxWidth:280,lineHeight:1.5,padding:"0 20px"}}><span data-i18n="splashSubtitle1">{t('splashSubtitle1')}</span><br/><span data-i18n="splashSubtitle2">{t('splashSubtitle2')}</span></div></div>);
+  return(<div style={{position:"fixed",inset:0,zIndex:100,background:"radial-gradient(ellipse at 50% 40%,#1a2340 0%,#0F1120 70%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",opacity:f?0:1,transition:"opacity 0.6s"}}><div className="splash-logo splash-logo-glow"><Logo size={Math.min(120,window.innerWidth*.28)}/></div><div className="splash-title" style={{marginTop:28,fontSize:Math.min(36,window.innerWidth*.09),fontWeight:900,letterSpacing:-1,background:"linear-gradient(135deg,#3d80ea,#3dc7ec,#fff)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>OilBlend</div><div className="splash-subtitle" style={{marginTop:8,fontSize:13,color:T.textDim,textAlign:"center",maxWidth:280,lineHeight:1.5,padding:"0 20px"}}>Il calcolatore tecnico di viscosità<br/>per oli industriali</div></div>);
 }
 
 /* ══════════════════════════════════════
-   CALC SCREEN
+   AUTH SCREEN — Accesso Semplificato
    ══════════════════════════════════════ */
 function CalcScreen(p){
   const[v1,setV1]=useState("");const[v2,setV2]=useState("");const[vT,setVT]=useState("");
   const[liters,setLiters]=useState("");const[error,setError]=useState(null);
   useEffect(function(){if(p.fillValue===null)return;var val=p.fillValue.toString();if(p.lastFocused==="v1")setV1(val);else if(p.lastFocused==="v2")setV2(val);else setVT(val);},[p.fillValue]);
   function calc(){
-    var a=parseFloat(v1),b=parseFloat(v2),tVal=parseFloat(vT);
-    if(isNaN(a)||isNaN(b)||isNaN(tVal)){setError("errorEmpty");p.setResult(null);return;}
-    try{var r=calculateBlend(a,b,tVal);var tL=parseFloat(liters);
-      p.setResult({oil1Pct:r.oil1Pct,oil2Pct:r.oil2Pct,swapped:r.swapped,v1:a,v2:b,vT:tVal,liters:(!isNaN(tL)&&tL>0)?tL:null,isoMatch:findISO(tVal)});setError(null);
+    var a=parseFloat(v1),b=parseFloat(v2),t=parseFloat(vT);
+    if(isNaN(a)||isNaN(b)||isNaN(t)){setError("Inserisci tutti e tre i valori di viscosità.");p.setResult(null);return;}
+    try{var r=calculateBlend(a,b,t);var tL=parseFloat(liters);
+      p.setResult({oil1Pct:r.oil1Pct,oil2Pct:r.oil2Pct,swapped:r.swapped,v1:a,v2:b,vT:t,liters:(!isNaN(tL)&&tL>0)?tL:null,isoMatch:findISO(t)});setError(null);
     }catch(e){setError(e.message);p.setResult(null);}
   }
   function reset(){setV1("");setV2("");setVT("");setLiters("");setError(null);p.setResult(null);}
   var R=p.result;
   return(
     <div style={{padding:"16px 18px 24px"}}>
-      <h1 data-i18n="calcTitle" style={{fontSize:Math.min(22,window.innerWidth*.055),fontWeight:800,color:T.text,margin:"0 0 4px",letterSpacing:-.5}}>{t('calcTitle')}</h1>
-      <p data-i18n="calcSubtitle" style={{fontSize:13,color:T.textDim,margin:"0 0 6px"}}>{t('calcSubtitle')}</p>
-      <div style={{padding:"8px 12px",borderRadius:8,background:T.yellowDim,border:"1px solid "+T.yellowBorder,fontSize:12,color:T.yellow,marginBottom:16}}>🌡️ <span data-i18n="tempWarningPre">{t('tempWarningPre')}</span> <strong>40°C</strong> <span data-i18n="tempWarningPost">{t('tempWarningPost')}</span></div>
+      <h1 style={{fontSize:Math.min(22,window.innerWidth*.055),fontWeight:800,color:T.text,margin:"0 0 4px",letterSpacing:-.5}}>Viscosity Blending Calculator</h1>
+      <p style={{fontSize:13,color:T.textDim,margin:"0 0 6px"}}>Inserisci i valori di viscosità cinematica</p>
+      <div style={{padding:"8px 12px",borderRadius:8,background:T.yellowDim,border:"1px solid "+T.yellowBorder,fontSize:12,color:T.yellow,marginBottom:16}}>🌡️ Tutti i valori devono essere riferiti a <strong>40°C</strong> (norma ASTM D341)</div>
 
-      <Inp label={t('oil1Label')} labelKey="oil1Label" value={v1} onChange={setV1} placeholder={t('oil1Placeholder')} placeholderKey="oil1Placeholder" unit="mm²/s" color={T.accent} onFocusCb={function(){p.setLastFocused("v1");}}/>
-      <Inp label={t('oil2Label')} labelKey="oil2Label" value={v2} onChange={setV2} placeholder={t('oil2Placeholder')} placeholderKey="oil2Placeholder" unit="mm²/s" color={T.orange} onFocusCb={function(){p.setLastFocused("v2");}}/>
-      <Inp label={t('targetLabel')} labelKey="targetLabel" value={vT} onChange={setVT} placeholder={t('targetPlaceholder')} placeholderKey="targetPlaceholder" unit="mm²/s" color={T.purple} onFocusCb={function(){p.setLastFocused("vT");}}/>
-      <Inp label={t('litersLabel')} labelKey="litersLabel" value={liters} onChange={setLiters} placeholder={t('litersPlaceholder')} placeholderKey="litersPlaceholder" unit="L"/>
+      <Inp label="Viscosità Olio 1 (mm²/s)" value={v1} onChange={setV1} placeholder="es. 220" unit="mm²/s" color={T.accent} onFocusCb={function(){p.setLastFocused("v1");}}/>
+      <Inp label="Viscosità Olio 2 (mm²/s)" value={v2} onChange={setV2} placeholder="es. 68" unit="mm²/s" color={T.orange} onFocusCb={function(){p.setLastFocused("v2");}}/>
+      <Inp label="Viscosità Finale desiderata (mm²/s)" value={vT} onChange={setVT} placeholder="es. 150" unit="mm²/s" color={T.purple} onFocusCb={function(){p.setLastFocused("vT");}}/>
+      <Inp label="Quantità totale (litri) — opzionale" value={liters} onChange={setLiters} placeholder="opzionale" unit="L"/>
 
       <div style={{display:"flex",gap:10,marginTop:14}}>
-        <button data-i18n="calcBtn" className="btn-primary" onClick={calc}>{t('calcBtn')}</button>
-        {(v1||v2||vT)&&<button data-i18n="resetBtn" onClick={reset} style={{padding:"16px 18px",borderRadius:14,border:"1.5px solid "+T.border,background:"transparent",color:T.textDim,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:T.font,flexShrink:0}}>{t('resetBtn')}</button>}
+        <button className="btn-primary" onClick={calc}>CALCOLA</button>
+        {(v1||v2||vT)&&<button onClick={reset} style={{padding:"16px 18px",borderRadius:14,border:"1.5px solid "+T.border,background:"transparent",color:T.textDim,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:T.font,flexShrink:0}}>Reset</button>}
       </div>
-      {error&&<Notice type="red">{t(error)}</Notice>}
-      {R&&R.swapped&&<Notice type="yellow">{t('swappedNotice')}</Notice>}
+      {error&&<Notice type="red">{error}</Notice>}
+      {R&&R.swapped&&<Notice type="yellow">I valori sono stati scambiati: Olio 1 è quello più viscoso.</Notice>}
       {R&&!error&&(
         <div style={{marginTop:20,borderRadius:18,overflow:"hidden",background:T.bgCard,border:"1px solid "+T.accentBorder,boxShadow:"0 8px 40px rgba(61,128,234,0.08)"}}>
           <div style={{padding:"16px 18px 14px",background:"linear-gradient(135deg,"+T.accentDim+",transparent)",borderBottom:"1px solid "+T.border}}>
-            <div style={{fontSize:10,color:T.textDim,textTransform:"uppercase",letterSpacing:1.4,fontWeight:700,marginBottom:4}}><span data-i18n="resultLabel">{t('resultLabel')}</span> <span style={{color:T.yellow}}>@ 40°C</span></div>
+            <div style={{fontSize:10,color:T.textDim,textTransform:"uppercase",letterSpacing:1.4,fontWeight:700,marginBottom:4}}>Risultato Miscela <span style={{color:T.yellow}}>@ 40°C</span></div>
             <Bar a={R.oil1Pct} b={R.oil2Pct}/>
           </div>
           <div style={{display:"flex",gap:10,padding:"12px 16px"}}>
             <div style={{flex:1,padding:"12px",borderRadius:14,background:T.accentDim,border:"1px solid "+T.accentBorder,textAlign:"center"}}>
-              <div style={{fontSize:9,color:T.accent,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{t('oil1ResultLabel')} {R.swapped?t('oil1MoreViscous'):""}</div>
+              <div style={{fontSize:9,color:T.accent,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Olio 1 {R.swapped?"(più viscoso)":""}</div>
               <div style={{fontFamily:T.mono,fontSize:26,fontWeight:700,color:T.accent,lineHeight:1}}>{R.oil1Pct.toFixed(1)}<span style={{fontSize:14}}>%</span></div>
               {R.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.accent,marginTop:4,opacity:.8}}>{(R.liters*R.oil1Pct/100).toFixed(1)} L</div>}
               <div style={{fontSize:11,color:T.textDim,marginTop:4}}>{R.swapped?R.v2:R.v1} mm²/s</div>
             </div>
             <div style={{flex:1,padding:"12px",borderRadius:14,background:T.orangeDim,border:"1px solid "+T.orangeBorder,textAlign:"center"}}>
-              <div data-i18n="oil2ResultLabel" style={{fontSize:9,color:T.orange,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{t('oil2ResultLabel')}</div>
+              <div style={{fontSize:9,color:T.orange,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Olio 2</div>
               <div style={{fontFamily:T.mono,fontSize:26,fontWeight:700,color:T.orange,lineHeight:1}}>{R.oil2Pct.toFixed(1)}<span style={{fontSize:14}}>%</span></div>
               {R.liters&&<div style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.orange,marginTop:4,opacity:.8}}>{(R.liters*R.oil2Pct/100).toFixed(1)} L</div>}
               <div style={{fontSize:11,color:T.textDim,marginTop:4}}>{R.swapped?R.v1:R.v2} mm²/s</div>
             </div>
           </div>
-          {R.isoMatch&&(<div style={{margin:"0 16px 12px",padding:"10px 12px",borderRadius:10,background:T.greenDim,border:"1px solid "+T.greenBorder,fontSize:12,color:T.green,fontWeight:600}}>{t('isoMatchPrefix')+R.isoMatch.g+" ("+R.isoMatch.n+"–"+R.isoMatch.x+" mm²/s)"}</div>)}
+          {R.isoMatch&&(<div style={{margin:"0 16px 12px",padding:"10px 12px",borderRadius:10,background:T.greenDim,border:"1px solid "+T.greenBorder,fontSize:12,color:T.green,fontWeight:600}}>{"✓ Target = ISO "+R.isoMatch.g+" ("+R.isoMatch.n+"–"+R.isoMatch.x+" mm²/s)"}</div>)}
         </div>
       )}
     </div>
@@ -239,12 +152,12 @@ function ISOScreen(p){
   var mg=(p.result&&p.result.isoMatch)?p.result.isoMatch.g:null;
   return(
     <div style={{padding:"16px 14px 24px"}}>
-      <h2 data-i18n="isoTitle" style={{fontSize:18,fontWeight:800,color:T.text,margin:"0 0 2px 4px"}}>{t('isoTitle')}</h2>
-      <p data-i18n="isoSubtitle" style={{fontSize:12,color:T.textDim,margin:"0 0 8px 4px"}}>{t('isoSubtitle')}</p>
-      <Notice type="blue"><span data-i18n="isoNotice">{t('isoNotice')}</span>{mg&&<span><br/><strong data-i18n="isoGreenWord" style={{color:T.green}}>{t('isoGreenWord')}</strong><span data-i18n="isoGreenSuffix">{t('isoGreenSuffix')}</span></span>}</Notice>
+      <h2 style={{fontSize:18,fontWeight:800,color:T.text,margin:"0 0 2px 4px"}}>Tabella ISO VG</h2>
+      <p style={{fontSize:12,color:T.textDim,margin:"0 0 8px 4px"}}>Viscosità cinematica a 40°C — tocca una riga per usarla</p>
+      <Notice type="blue">Tocca un grado per inserirne il valore mediano nell'ultimo campo selezionato.{mg&&<span><br/><strong style={{color:T.green}}>Verde</strong> = risultato attuale.</span>}</Notice>
       <div style={{height:14}}></div>
       <div style={{borderRadius:14,overflow:"hidden",border:"1px solid "+T.border}}>
-        <div style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"10px 12px",background:T.accentDim,borderBottom:"1px solid "+T.border,fontSize:10,fontWeight:700,color:T.accent,textTransform:"uppercase",letterSpacing:1}}><div data-i18n="isoColGrade">{t('isoColGrade')}</div><div data-i18n="isoColMid" style={{textAlign:"right"}}>{t('isoColMid')}</div><div data-i18n="isoColMin" style={{textAlign:"right"}}>{t('isoColMin')}</div><div data-i18n="isoColMax" style={{textAlign:"right"}}>{t('isoColMax')}</div></div>
+        <div style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"10px 12px",background:T.accentDim,borderBottom:"1px solid "+T.border,fontSize:10,fontWeight:700,color:T.accent,textTransform:"uppercase",letterSpacing:1}}><div>Grado</div><div style={{textAlign:"right"}}>Media</div><div style={{textAlign:"right"}}>Min</div><div style={{textAlign:"right"}}>Max</div></div>
         {ISO_VG.map(function(g,i){var mt=mg===g.g;return(
           <div key={g.g} onClick={function(){p.onTap(g.m);}} style={{display:"grid",gridTemplateColumns:"1.2fr 1fr 1fr 1fr",padding:"11px 12px",cursor:"pointer",background:mt?T.greenDim:(i%2===0?"rgba(255,255,255,0.01)":"rgba(255,255,255,0.025)"),borderBottom:"1px solid "+T.border,borderLeft:mt?"3px solid "+T.green:"3px solid transparent",alignItems:"center"}}>
             <div style={{fontWeight:700,fontSize:12,color:mt?T.green:T.text}}>{"ISO "+g.g}</div>
@@ -264,84 +177,84 @@ function ISOScreen(p){
 function InfoScreen(){
   const[showPolicy,setShowPolicy]=useState(null);
   var h3s={fontSize:15,fontWeight:700,color:T.text,margin:"22px 0 8px"};var ps={fontSize:13,color:T.textDim,lineHeight:1.7,margin:"0 0 8px"};
-  var policyBtn=function(label,id,labelKey){return(<button onClick={function(){setShowPolicy(showPolicy===id?null:id);}} style={{width:"100%",padding:"14px 16px",borderRadius:12,border:"1px solid "+T.border,background:showPolicy===id?T.accentDim:"rgba(255,255,255,0.02)",color:showPolicy===id?T.accent:T.text,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:T.font,marginBottom:8,textAlign:"left",display:"flex",justifyContent:"space-between",alignItems:"center"}}><span data-i18n={labelKey}>{label}</span><span style={{fontSize:18,color:T.textDim}}>{showPolicy===id?"−":"+"}</span></button>);};
+  var policyBtn=function(label,id){return(<button onClick={function(){setShowPolicy(showPolicy===id?null:id);}} style={{width:"100%",padding:"14px 16px",borderRadius:12,border:"1px solid "+T.border,background:showPolicy===id?T.accentDim:"rgba(255,255,255,0.02)",color:showPolicy===id?T.accent:T.text,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:T.font,marginBottom:8,textAlign:"left",display:"flex",justifyContent:"space-between",alignItems:"center"}}><span>{label}</span><span style={{fontSize:18,color:T.textDim}}>{showPolicy===id?"−":"+"}</span></button>);};
 
   return(
     <div style={{padding:"20px 18px 40px"}}>
-      <h2 data-i18n="infoTitle" style={{fontSize:20,fontWeight:800,color:T.text,margin:"0 0 4px"}}>{t('infoTitle')}</h2>
-      <p data-i18n="infoSubtitle" style={{fontSize:12,color:T.textDim,margin:"0 0 16px"}}>{t('infoSubtitle')}</p>
-      <div style={{padding:"14px 16px",borderRadius:14,background:T.yellowDim,border:"1px solid "+T.yellowBorder,fontSize:13,color:T.yellow,lineHeight:1.6}}><strong data-i18n="infoWarningTitle">{t('infoWarningTitle')}</strong><br/><span data-i18n="infoWarningPre">{t('infoWarningPre')}</span> <strong data-i18n="infoWarningBold">{t('infoWarningBold')}</strong><span data-i18n="infoWarningMid">{t('infoWarningMid')}</span> <strong>2 mm²/s</strong>.</div>
-      <h3 data-i18n="infoMethodTitle" style={h3s}>{t('infoMethodTitle')}</h3>
-      <p data-i18n="infoMethodText" style={ps}>{t('infoMethodText')}</p>
-      <h3 data-i18n="infoFormulaTitle" style={h3s}>{t('infoFormulaTitle')}</h3>
+      <h2 style={{fontSize:20,fontWeight:800,color:T.text,margin:"0 0 4px"}}>Informazioni</h2>
+      <p style={{fontSize:12,color:T.textDim,margin:"0 0 16px"}}>Metodo di calcolo e documenti legali</p>
+      <div style={{padding:"14px 16px",borderRadius:14,background:T.yellowDim,border:"1px solid "+T.yellowBorder,fontSize:13,color:T.yellow,lineHeight:1.6}}><strong>⚠️ Attenzione</strong><br/>Le viscosità devono essere alla <strong>stessa temperatura (40°C)</strong>. Valido solo per valori &gt; <strong>2 mm²/s</strong>.</div>
+      <h3 style={h3s}>Metodo ASTM D341 (Walther)</h3>
+      <p style={ps}>Standard internazionale per stimare la viscosità di miscele di oli lubrificanti, basato sulla relazione doppio-logaritmica tra viscosità e composizione.</p>
+      <h3 style={h3s}>Formula</h3>
       <div style={{padding:"14px",borderRadius:14,background:"rgba(255,255,255,0.03)",border:"1px solid "+T.border,fontFamily:T.mono,fontSize:12,color:T.accent,lineHeight:2.2,overflowX:"auto"}}>
-        <div data-i18n="infoFormulaComment1" style={{color:T.textDim,fontSize:10}}>{t('infoFormulaComment1')}</div><div>{"W(ν) = log₁₀(log₁₀(ν + 0.8))"}</div>
-        <div data-i18n="infoFormulaComment2" style={{marginTop:8,color:T.textDim,fontSize:10}}>{t('infoFormulaComment2')}</div><div>{"x = (W(ν_t) − W(ν₂)) / (W(ν₁) − W(ν₂))"}</div>
-        <div data-i18n="infoFormulaLine" style={{marginTop:8}}>{t('infoFormulaLine')}</div>
+        <div style={{color:T.textDim,fontSize:10}}>{"// Walther"}</div><div>{"W(ν) = log₁₀(log₁₀(ν + 0.8))"}</div>
+        <div style={{marginTop:8,color:T.textDim,fontSize:10}}>{"// % Olio 1"}</div><div>{"x = (W(ν_t) − W(ν₂)) / (W(ν₁) − W(ν₂))"}</div>
+        <div style={{marginTop:8}}>{"Olio1 = x×100%  ·  Olio2 = (1−x)×100%"}</div>
       </div>
-      <h3 data-i18n="infoLimitsTitle" style={h3s}>{t('infoLimitsTitle')}</h3>
-      <p data-i18n="infoLimitsText" style={ps}>{t('infoLimitsText')}</p>
+      <h3 style={h3s}>Limiti</h3>
+      <p style={ps}>Funziona per oli minerali e sintetici con ν &gt; 2 mm²/s. Non applicabile a emulsioni o oli con additivi polimerici. Evitare differenze eccessive.</p>
 
-      <h3 data-i18n="infoLegalTitle" style={Object.assign({},h3s,{marginTop:32})}>{t('infoLegalTitle')}</h3>
+      <h3 style={Object.assign({},h3s,{marginTop:32})}>Documenti Legali</h3>
 
-      {policyBtn(t('privacyBtn'),"privacy","privacyBtn")}
+      {policyBtn("📋 Privacy Policy","privacy")}
       {showPolicy==="privacy"&&(<div style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,marginBottom:12,fontSize:12,color:T.textDim,lineHeight:1.8}}>
-        <strong data-i18n="privacyDocTitle" style={{color:T.text,fontSize:14}}>{t('privacyDocTitle')}</strong><br/><br/>
-        <strong data-i18n="privacyLastUpdatedLabel" style={{color:T.text}}>{t('privacyLastUpdatedLabel')}</strong> <span data-i18n="privacyLastUpdatedDate">{t('privacyLastUpdatedDate')}</span><br/><br/>
-        <strong data-i18n="privacy1Title" style={{color:T.text}}>{t('privacy1Title')}</strong><br/>
-        <span data-i18n="privacy1Text">{t('privacy1Text')}</span><br/><br/>
-        <strong data-i18n="privacy2Title" style={{color:T.text}}>{t('privacy2Title')}</strong><br/>
-        <span data-i18n="privacy2Text">{t('privacy2Text')}</span><br/><br/>
-        <strong data-i18n="privacy3Title" style={{color:T.text}}>{t('privacy3Title')}</strong><br/>
-        <span data-i18n="privacy3Text">{t('privacy3Text')}</span><br/><br/>
-        <strong data-i18n="privacy4Title" style={{color:T.text}}>{t('privacy4Title')}</strong><br/>
-        <span data-i18n="privacy4Text">{t('privacy4Text')}</span><br/><br/>
-        <strong data-i18n="privacy5Title" style={{color:T.text}}>{t('privacy5Title')}</strong><br/>
-        <span data-i18n="privacy5Text">{t('privacy5Text')}</span><br/><br/>
-        <strong data-i18n="privacy6Title" style={{color:T.text}}>{t('privacy6Title')}</strong><br/>
-        <span data-i18n="privacy6Text">{t('privacy6Text')}</span><br/><br/>
-        <strong data-i18n="privacy7Title" style={{color:T.text}}>{t('privacy7Title')}</strong><br/>
-        <span data-i18n="privacy7Text">{t('privacy7Text')}</span> <a href="mailto:info@nuovabravol.it">Nuova Bravol Srl</a><br/><br/>
-        <strong data-i18n="privacy8Title" style={{color:T.text}}>{t('privacy8Title')}</strong><br/>
-        <span data-i18n="privacy8Text">{t('privacy8Text')}</span>
+        <strong style={{color:T.text,fontSize:14}}>Privacy Policy — OilBlend</strong><br/><br/>
+        <strong style={{color:T.text}}>Ultimo aggiornamento:</strong> Marzo 2026<br/><br/>
+        <strong style={{color:T.text}}>1. Titolare del Trattamento</strong><br/>
+        Digital Reality, in collaborazione con Nuova Bravol Srl.<br/><br/>
+        <strong style={{color:T.text}}>2. Dati Raccolti</strong><br/>
+        L'app non raccoglie dati personali. Vengono rilevati esclusivamente dati tecnici anonimi (tipo di dispositivo, dimensione schermo) a fini statistici interni, senza possibilità di identificazione dell'utente.<br/><br/>
+        <strong style={{color:T.text}}>3. Finalità del Trattamento</strong><br/>
+        I dati tecnici anonimi sono utilizzati esclusivamente per migliorare la compatibilità e l'esperienza d'uso dell'applicazione.<br/><br/>
+        <strong style={{color:T.text}}>4. Base Giuridica</strong><br/>
+        Il trattamento si basa sul legittimo interesse del titolare (art. 6.1.f GDPR) per finalità di ottimizzazione tecnica del servizio.<br/><br/>
+        <strong style={{color:T.text}}>5. Conservazione dei Dati</strong><br/>
+        Non vengono conservati dati personali. I dati tecnici anonimi sono elaborati in forma aggregata e non vengono associati a singoli utenti.<br/><br/>
+        <strong style={{color:T.text}}>6. Condivisione dei Dati</strong><br/>
+        Nessun dato viene ceduto a terze parti per finalità di marketing o profilazione.<br/><br/>
+        <strong style={{color:T.text}}>7. Diritti dell'Utente</strong><br/>
+        Poiché non vengono trattati dati personali identificativi, non si applica l'esercizio dei diritti GDPR. Per info rivolgersi a Digital Reality o Nuova Bravol Srl<br/><br/>
+        <strong style={{color:T.text}}>8. Sicurezza</strong><br/>
+        L'app funziona in locale, senza trasmissione di dati sensibili a server esterni. Tutte le elaborazioni avvengono sul dispositivo dell'utente.
       </div>)}
 
-      {policyBtn(t('cookieBtn'),"cookies","cookieBtn")}
+      {policyBtn("🍪 Cookie Policy","cookies")}
       {showPolicy==="cookies"&&(<div style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,marginBottom:12,fontSize:12,color:T.textDim,lineHeight:1.8}}>
-        <strong data-i18n="cookieDocTitle" style={{color:T.text,fontSize:14}}>{t('cookieDocTitle')}</strong><br/><br/>
-        <strong data-i18n="cookie1Title" style={{color:T.text}}>{t('cookie1Title')}</strong><br/>
-        <span data-i18n="cookie1Text">{t('cookie1Text')}</span><br/><br/>
-        <strong data-i18n="cookie2Title" style={{color:T.text}}>{t('cookie2Title')}</strong><br/>
-        <span data-i18n="cookie2Text">{t('cookie2Text')}</span><br/><br/>
-        <strong data-i18n="cookie3Title" style={{color:T.text}}>{t('cookie3Title')}</strong><br/>
-        <span data-i18n="cookie3Text">{t('cookie3Text')}</span><br/><br/>
-        <strong data-i18n="cookie4Title" style={{color:T.text}}>{t('cookie4Title')}</strong><br/>
-        <span data-i18n="cookie4Text">{t('cookie4Text')}</span><br/><br/>
-        <strong data-i18n="cookie5Title" style={{color:T.text}}>{t('cookie5Title')}</strong><br/>
-        <span data-i18n="cookie5Text">{t('cookie5Text')}</span>
+        <strong style={{color:T.text,fontSize:14}}>Cookie Policy — OilBlend</strong><br/><br/>
+        <strong style={{color:T.text}}>1. Cosa sono i cookie</strong><br/>
+        I cookie sono piccoli file di testo memorizzati sul dispositivo. OilBlend utilizza tecnologie equivalenti (localStorage) esclusivamente per il funzionamento locale dell'app.<br/><br/>
+        <strong style={{color:T.text}}>2. Cookie Tecnici (necessari)</strong><br/>
+        OilBlend utilizza localStorage esclusivamente per memorizzare le preferenze temporanee dell'app (ultimo campo attivo, risultati di calcolo). Questi dati rimangono sul dispositivo e non vengono trasmessi.<br/><br/>
+        <strong style={{color:T.text}}>3. Cookie di Profilazione</strong><br/>
+        OilBlend NON utilizza cookie di profilazione, cookie pubblicitari o tracker di terze parti.<br/><br/>
+        <strong style={{color:T.text}}>4. Cookie Analitici</strong><br/>
+        Non vengono utilizzati servizi di analisi di terze parti come Google Analytics.<br/><br/>
+        <strong style={{color:T.text}}>5. Gestione</strong><br/>
+        L'utente può cancellare i dati locali in qualsiasi momento tramite le impostazioni del browser o del dispositivo.
       </div>)}
 
-      {policyBtn(t('termsBtn'),"terms","termsBtn")}
+      {policyBtn("📜 Termini di Servizio","terms")}
       {showPolicy==="terms"&&(<div style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,marginBottom:12,fontSize:12,color:T.textDim,lineHeight:1.8}}>
-        <strong data-i18n="termsDocTitle" style={{color:T.text,fontSize:14}}>{t('termsDocTitle')}</strong><br/><br/>
-        <strong data-i18n="terms1Title" style={{color:T.text}}>{t('terms1Title')}</strong><br/>
-        <span data-i18n="terms1Text">{t('terms1Text')}</span><br/><br/>
-        <strong data-i18n="terms2Title" style={{color:T.text}}>{t('terms2Title')}</strong><br/>
-        <span data-i18n="terms2Text">{t('terms2Text')}</span><br/><br/>
-        <strong data-i18n="terms3Title" style={{color:T.text}}>{t('terms3Title')}</strong><br/>
-        <span data-i18n="terms3Text">{t('terms3Text')}</span><br/><br/>
-        <strong data-i18n="terms4Title" style={{color:T.text}}>{t('terms4Title')}</strong><br/>
-        <span data-i18n="terms4Text">{t('terms4Text')}</span><br/><br/>
-        <strong data-i18n="terms5Title" style={{color:T.text}}>{t('terms5Title')}</strong><br/>
-        <span data-i18n="terms5Text">{t('terms5Text')}</span><br/><br/>
-        <strong data-i18n="terms6Title" style={{color:T.text}}>{t('terms6Title')}</strong><br/>
-        <span data-i18n="terms6Text">{t('terms6Text')}</span><br/><br/>
-        <span data-i18n="legalContactText">{t('legalContactText')}</span> <a href="mailto:info@nuovabravol.it">Nuova Bravol Srl</a>
+        <strong style={{color:T.text,fontSize:14}}>Termini di Servizio — OilBlend</strong><br/><br/>
+        <strong style={{color:T.text}}>1. Descrizione del Servizio</strong><br/>
+        OilBlend è un'applicazione di calcolo tecnico che consente di stimare le proporzioni di miscelazione di oli lubrificanti per ottenere una viscosità target, secondo il metodo ASTM D341 (Walther).<br/><br/>
+        <strong style={{color:T.text}}>2. Uso Consentito</strong><br/>
+        L'app è destinata a professionisti del settore lubrificanti e oli industriali. L'uso è consentito esclusivamente per scopi professionali e tecnici leciti.<br/><br/>
+        <strong style={{color:T.text}}>3. Limitazione di Responsabilità</strong><br/>
+        I calcoli forniti sono puramente indicativi e basati su modelli matematici standardizzati. Digital Reality e Nuova Bravol Srl non sono responsabili per danni diretti o indiretti derivanti dall'uso dei risultati, incluse miscele errate, danni a macchinari o perdite economiche. I risultati non sostituiscono analisi di laboratorio o consulenza specializzata.<br/><br/>
+        <strong style={{color:T.text}}>4. Proprietà Intellettuale</strong><br/>
+        L'app, il suo design, il logo, il codice sorgente e tutti i contenuti sono proprietà esclusiva di Digital Reality e Nuova Bravol Srl. È vietata la riproduzione, distribuzione o reverse engineering non autorizzata.<br/><br/>
+        <strong style={{color:T.text}}>5. Modifiche</strong><br/>
+        I presenti termini possono essere aggiornati periodicamente. L'uso continuato dell'app dopo modifiche costituisce accettazione dei nuovi termini.<br/><br/>
+        <strong style={{color:T.text}}>6. Legge Applicabile</strong><br/>
+        I presenti termini sono regolati dalla legge italiana e dal diritto dell'Unione Europea. Foro competente: Tribunale di Milano, Italia.<br/><br/>
+        Per info rivolgersi a Digital Reality o Nuova Bravol Srl
       </div>)}
 
       <div style={{marginTop:28,padding:"14px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid "+T.border,textAlign:"center"}}>
-        <Logo size={28} style={{margin:"0 auto 8px",display:"block"}}/><div data-i18n="footerAppName" style={{fontSize:16,fontWeight:800,color:T.text}}>{t('footerAppName')}</div><div data-i18n="versionLabel" style={{fontSize:11,color:T.textDim,marginTop:4}}>{t('versionLabel')}</div><div data-i18n="footerTagline" style={{fontSize:10,color:T.textMuted,marginTop:2}}>{t('footerTagline')}</div>
-        <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid "+T.border,fontSize:11,color:T.textDim,lineHeight:1.5}}><span data-i18n="designedBy">{t('designedBy')}</span> <strong style={{color:T.text}}>Digital Reality</strong> & <strong style={{color:T.text}}>Nuova Bravol Srl</strong></div>
+        <Logo size={28} style={{margin:"0 auto 8px",display:"block"}}/><div style={{fontSize:16,fontWeight:800,color:T.text}}>OilBlend</div><div style={{fontSize:11,color:T.textDim,marginTop:4}}>Versione 1.0.0</div><div style={{fontSize:10,color:T.textMuted,marginTop:2}}>ASTM D341 · Walther</div>
+        <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid "+T.border,fontSize:11,color:T.textDim,lineHeight:1.5}}>Designed by <strong style={{color:T.text}}>Digital Reality</strong> & <strong style={{color:T.text}}>Nuova Bravol Srl</strong></div>
       </div>
     </div>
   );
@@ -351,25 +264,18 @@ function App(){
   const[showSplash,setShowSplash]=useState(true);
   const[tab,setTab]=useState("calc");const[lastFocused,setLastFocused]=useState("vT");
   const[result,setResult]=useState(null);const[fillValue,setFillValue]=useState(null);const[fillCounter,setFillCounter]=useState(0);
-  /* Step 5: force full re-render when language changes so every t() call re-evaluates */
-  const[langKey,setLangKey]=useState(0);
-  useEffect(function(){
-    function handleLangChange(){setLangKey(function(k){return k+1;});}
-    document.addEventListener('oilblend-langchange',handleLangChange);
-    return function(){document.removeEventListener('oilblend-langchange',handleLangChange);};
-  },[]);
 
   if(showSplash)return <Splash onDone={function(){setShowSplash(false);}}/>;
 
   function handleISOTap(m){setFillValue(m);setFillCounter(function(c){return c+1;});setTab("calc");}
 
-  var tabs=[{id:"calc",label:t('tabCalc'),i18nKey:"tabCalc",Icon:CalcIcon},{id:"table",label:t('tabISO'),i18nKey:"tabISO",Icon:TblIcon},{id:"info",label:t('tabInfo'),i18nKey:"tabInfo",Icon:InfoIcon}];
+  var tabs=[{id:"calc",label:"Calcolo",Icon:CalcIcon},{id:"table",label:"ISO VG",Icon:TblIcon},{id:"info",label:"Info",Icon:InfoIcon}];
 
   return(
     <div style={{maxWidth:430,margin:"0 auto",height:"100%",background:"linear-gradient(175deg,"+T.bg+" 0%,#0a0d1a 50%,"+T.bg+" 100%)",fontFamily:T.font,color:T.text,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-100,right:-60,width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(61,128,234,0.06),transparent 70%)",pointerEvents:"none"}}/>
       <div style={{padding:"max(env(safe-area-inset-top,8px),8px) 18px 8px",display:"flex",alignItems:"center",gap:10,borderBottom:"1px solid "+T.border,flexShrink:0}}>
-        <Logo size={26}/><div data-i18n="footerAppName" style={{fontSize:15,fontWeight:800,letterSpacing:-.3,background:"linear-gradient(90deg,#3d80ea,#3dc7ec)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>{t('footerAppName')}</div>
+        <Logo size={26}/><div style={{fontSize:15,fontWeight:800,letterSpacing:-.3,background:"linear-gradient(90deg,#3d80ea,#3dc7ec)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>OilBlend</div>
       </div>
       <div className="content-scroll">
         {tab==="calc"&&<CalcScreen key={fillCounter} lastFocused={lastFocused} setLastFocused={setLastFocused} result={result} setResult={setResult} fillValue={fillValue}/>}
@@ -377,7 +283,7 @@ function App(){
         {tab==="info"&&<InfoScreen/>}
       </div>
       <div className="bottom-nav"><div style={{display:"flex",paddingTop:8}}>
-        {tabs.map(function(tb){var a=tab===tb.id;return(<button key={tb.id} onClick={function(){setTab(tb.id);}} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 0",fontFamily:T.font}}><div style={{padding:"4px 14px",borderRadius:16,background:a?T.accentDim:"transparent",transition:"background 0.25s"}}><tb.Icon active={a}/></div><span data-i18n={tb.i18nKey} style={{fontSize:10,fontWeight:a?700:500,color:a?T.accent:T.textMuted,letterSpacing:.3}}>{tb.label}</span></button>);})}
+        {tabs.map(function(t){var a=tab===t.id;return(<button key={t.id} onClick={function(){setTab(t.id);}} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 0",fontFamily:T.font}}><div style={{padding:"4px 14px",borderRadius:16,background:a?T.accentDim:"transparent",transition:"background 0.25s"}}><t.Icon active={a}/></div><span style={{fontSize:10,fontWeight:a?700:500,color:a?T.accent:T.textMuted,letterSpacing:.3}}>{t.label}</span></button>);})}
       </div></div>
     </div>
   );
