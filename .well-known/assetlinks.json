@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "it.digitalrealitylab.oilblend",
+        "sha256_cert_fingerprints": ["C5:B7:18:76:D7:E6:C1:BE:46:BC:54:C5:57:88:62:AA:71:D6:58:DA:21:B1:34:7E:DC:0B:45:F3:B7:E9:19:25"]
+      }
+    }]
